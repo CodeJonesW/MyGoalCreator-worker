@@ -122,6 +122,7 @@ export default {
 
 		if (pathname === '/api/analyze') {
 			const authResponse = await verifyToken(request, env);
+			console.log('auth response', authResponse);
 			if (authResponse instanceof Response) return authResponse;
 
 			const user = authResponse.user;
@@ -132,6 +133,7 @@ export default {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
+			console.log('after user from db');
 			const requestBody = await request.json();
 			// @ts-ignore
 			const { url: videoUrl, prompt } = requestBody;
@@ -142,6 +144,8 @@ export default {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
+
+			console.log(videoUrl);
 
 			// Step 3: Extract the video ID from the YouTube URL
 			const videoIdMatch =
@@ -154,11 +158,40 @@ export default {
 				});
 			}
 			const videoId = videoIdMatch[1];
+			console.log('video Id', videoId);
 
 			// Step 4: Fetch captions from YouTube API
 			try {
+				// Step 1: Check the video's privacy status
+				const videoStatusUrl = `https://www.googleapis.com/youtube/v3/videos?part=status,snippet&id=${videoId}&key=${env.YOUTUBE_API_KEY}`;
+				const videoStatusResponse = await fetch(videoStatusUrl);
+
+				if (!videoStatusResponse.ok) {
+					const errorDetails = await videoStatusResponse.json();
+					return new Response(JSON.stringify({ error: 'Failed to check video status', details: errorDetails }), {
+						status: videoStatusResponse.status,
+						headers: { 'Content-Type': 'application/json' },
+					});
+				}
+				const videoData: any = await videoStatusResponse.json();
+				if (!videoData.items || videoData.items.length === 0) {
+					return new Response(JSON.stringify({ error: 'Video not found' }), {
+						status: 404,
+						headers: { 'Content-Type': 'application/json' },
+					});
+				}
+
+				const privacyStatus = videoData.items[0].status.privacyStatus;
+				if (privacyStatus !== 'public') {
+					return new Response(JSON.stringify({ error: 'Video is not public' }), {
+						status: 403,
+						headers: { 'Content-Type': 'application/json' },
+					});
+				}
+
 				const captionsListUrl = `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${env.YOUTUBE_API_KEY}`;
 				const captionsListResponse = await fetch(captionsListUrl);
+				console.log('caption response', captionsListResponse);
 
 				if (!captionsListResponse.ok) {
 					return new Response(JSON.stringify({ error: 'Failed to fetch captions list from YouTube' }), {
@@ -174,19 +207,21 @@ export default {
 						headers: { 'Content-Type': 'application/json' },
 					});
 				}
+				console.log('Captions are available for this video', videoId);
 
 				const captionId = captionsListData.items[0].id;
 				const captionDataUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=ttml&key=${env.YOUTUBE_API_KEY}`;
 
 				const captionResponse = await fetch(captionDataUrl);
 				if (!captionResponse.ok) {
+					console.log('caption response', captionResponse);
 					return new Response(JSON.stringify({ error: 'Failed to fetch caption data' }), {
 						status: captionResponse.status,
 						headers: { 'Content-Type': 'application/json' },
 					});
 				}
 
-				const captionText = await captionResponse.text(); // You will get the captions in TTML or plain text depending on the format
+				const captionText = await captionResponse.text(); // captions in TTML or plain text depending on the format
 
 				// Step 5: Analyze captions using OpenAI API
 				const openAiResponse = await fetch('https://api.openai.com/v1/completions', {
@@ -196,9 +231,9 @@ export default {
 						Authorization: `Bearer ${env.OPENAI_API_KEY}`,
 					},
 					body: JSON.stringify({
-						model: 'text-davinci-003', // or another appropriate model
+						model: 'text-davinci-003',
 						prompt: `Analyze the following YouTube video transcript:\n${captionText}\n\n${prompt}`,
-						max_tokens: 1500, // Adjust according to your requirements
+						max_tokens: 1500,
 					}),
 				});
 
