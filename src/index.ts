@@ -1,7 +1,31 @@
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+
 export interface Env {
 	DB: D1Database;
 }
+
+const JWT_SECRET = 'secret-key';
+const verifyToken = async (request: Request): Promise<{ user: any } | Response> => {
+	const authHeader = request.headers.get('Authorization');
+	if (!authHeader || !authHeader.startsWith('Bearer ')) {
+		return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+			status: 401,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+
+	const token = authHeader.split(' ')[1];
+	try {
+		const decoded = jwt.verify(token, JWT_SECRET);
+		return { user: decoded }; // Return the decoded user info
+	} catch (error) {
+		return new Response(JSON.stringify({ error: 'Invalid token' }), {
+			status: 403,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+};
 
 export default {
 	async fetch(request, env): Promise<Response> {
@@ -26,7 +50,9 @@ export default {
 			}
 			const saltRounds = 10;
 			const hashedPassword = await bcrypt.hash(password, saltRounds);
-			const { success } = await env.DB.prepare(`INSERT INTO Users (email, user_password) VALUES (?, ?)`).bind(email, hashedPassword).run();
+			const { success } = await env.DB.prepare(`INSERT INTO Users (email, user_password, transcription_minutes) VALUES (?, ?, ?)`)
+				.bind(email, hashedPassword, 10)
+				.run();
 			if (success) {
 				return new Response(JSON.stringify({ message: 'User added successfully' }), {
 					status: 200,
@@ -63,12 +89,34 @@ export default {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
-			return new Response(JSON.stringify({ message: 'Login successful' }), {
+			const token = jwt.sign({ email: user.email, userId: user.UserId }, JWT_SECRET, { expiresIn: '1h' });
+
+			return new Response(JSON.stringify({ message: 'Login successful', access_token: token }), {
 				status: 200,
 				headers: { 'Content-Type': 'application/json' },
 			});
 		}
 
-		return new Response('Call /api/users to see everyone who works at Bs Beverages');
+		if (pathname === '/api/profile') {
+			const authResponse = await verifyToken(request);
+			if (authResponse instanceof Response) return authResponse;
+
+			const user = authResponse.user;
+			console.log('Authenticated user:', user);
+
+			const userFromDb = await env.DB.prepare(`SELECT email, transcription_minutes FROM Users WHERE UserId = ?`).bind(user.userId).first();
+			if (!userFromDb) {
+				return new Response(JSON.stringify({ error: 'User not found' }), {
+					status: 404,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+			return new Response(JSON.stringify({ user: userFromDb }), {
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
+
+		return new Response('TubeScriptAiWorker');
 	},
 } satisfies ExportedHandler<Env>;
