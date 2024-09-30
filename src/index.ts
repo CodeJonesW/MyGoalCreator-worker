@@ -1,18 +1,50 @@
-/**
- * Welcome to Cloudflare Workers! This is your first worker.
- *
- * - Run `npm run dev` in your terminal to start a development server
- * - Open a browser tab at http://localhost:8787/ to see your worker in action
- * - Run `npm run deploy` to publish your worker
- *
- * Bind resources to your worker in `wrangler.toml`. After adding bindings, a type definition for the
- * `Env` object can be regenerated with `npm run cf-typegen`.
- *
- * Learn more at https://developers.cloudflare.com/workers/
- */
+import bcrypt from 'bcryptjs';
+export interface Env {
+	DB: D1Database;
+}
 
 export default {
-	async fetch(request, env, ctx): Promise<Response> {
-		return new Response('Hello World!');
+	async fetch(request, env): Promise<Response> {
+		console.log('Request received:', request.url);
+		const { pathname } = new URL(request.url);
+		console.log('Pathname:', pathname);
+
+		if (pathname === '/api/register') {
+			console.log('inside path condition');
+			const email = request.headers.get('x-email');
+			const password = request.headers.get('x-password');
+			console.log('Email:', email, 'Password:', password);
+			if (!email || !password) {
+				return new Response(JSON.stringify({ error: 'Missing email or password' }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+			const user = await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
+			console.log('User:', user);
+			if (user) {
+				console.log('User already exists');
+				return new Response(JSON.stringify({ error: 'User already exists' }), {
+					status: 400,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+			const saltRounds = 10;
+			const hashedPassword = await bcrypt.hash(password, saltRounds);
+			const { success } = await env.DB.prepare(`INSERT INTO Users (email, password) VALUES (?, ?)`).bind(email, hashedPassword).run();
+			if (success) {
+				return new Response(JSON.stringify({ message: 'User added successfully' }), {
+					status: 200,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			} else {
+				return new Response(JSON.stringify({ error: 'Failed to insert user' }), {
+					status: 500,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+		}
+
+		return new Response('Call /api/users to see everyone who works at Bs Beverages');
 	},
 } satisfies ExportedHandler<Env>;
