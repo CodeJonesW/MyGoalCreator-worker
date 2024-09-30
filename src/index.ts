@@ -10,10 +10,8 @@ export default {
 		console.log('Pathname:', pathname);
 
 		if (pathname === '/api/register') {
-			console.log('inside path condition');
 			const email = request.headers.get('x-email');
 			const password = request.headers.get('x-password');
-			console.log('Email:', email, 'Password:', password);
 			if (!email || !password) {
 				return new Response(JSON.stringify({ error: 'Missing email or password' }), {
 					status: 400,
@@ -21,7 +19,6 @@ export default {
 				});
 			}
 			const user = await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
-			console.log('User:', user);
 			if (user) {
 				console.log('User already exists');
 				return new Response(JSON.stringify({ error: 'User already exists' }), {
