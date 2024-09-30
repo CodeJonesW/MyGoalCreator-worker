@@ -3,10 +3,10 @@ import jwt from 'jsonwebtoken';
 
 export interface Env {
 	DB: D1Database;
+	JWT_SECRET: string;
 }
 
-const JWT_SECRET = 'secret-key';
-const verifyToken = async (request: Request): Promise<{ user: any } | Response> => {
+const verifyToken = async (request: Request, env: Env): Promise<{ user: any } | Response> => {
 	const authHeader = request.headers.get('Authorization');
 	if (!authHeader || !authHeader.startsWith('Bearer ')) {
 		return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -17,8 +17,8 @@ const verifyToken = async (request: Request): Promise<{ user: any } | Response> 
 
 	const token = authHeader.split(' ')[1];
 	try {
-		const decoded = jwt.verify(token, JWT_SECRET);
-		return { user: decoded }; // Return the decoded user info
+		const decoded = jwt.verify(token, env.JWT_SECRET);
+		return { user: decoded };
 	} catch (error) {
 		return new Response(JSON.stringify({ error: 'Invalid token' }), {
 			status: 403,
@@ -30,6 +30,7 @@ const verifyToken = async (request: Request): Promise<{ user: any } | Response> 
 export default {
 	async fetch(request, env): Promise<Response> {
 		const { pathname } = new URL(request.url);
+		console.log('pathname', pathname);
 
 		if (pathname === '/api/register') {
 			const email = request.headers.get('x-email');
@@ -89,7 +90,7 @@ export default {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
-			const token = jwt.sign({ email: user.email, userId: user.UserId }, JWT_SECRET, { expiresIn: '1h' });
+			const token = jwt.sign({ email: user.email, userId: user.UserId }, env.JWT_SECRET, { expiresIn: '1h' });
 
 			return new Response(JSON.stringify({ message: 'Login successful', access_token: token }), {
 				status: 200,
@@ -98,7 +99,7 @@ export default {
 		}
 
 		if (pathname === '/api/profile') {
-			const authResponse = await verifyToken(request);
+			const authResponse = await verifyToken(request, env);
 			if (authResponse instanceof Response) return authResponse;
 
 			const user = authResponse.user;
