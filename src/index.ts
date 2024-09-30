@@ -5,9 +5,7 @@ export interface Env {
 
 export default {
 	async fetch(request, env): Promise<Response> {
-		console.log('Request received:', request.url);
 		const { pathname } = new URL(request.url);
-		console.log('Pathname:', pathname);
 
 		if (pathname === '/api/register') {
 			const email = request.headers.get('x-email');
