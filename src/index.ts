@@ -1,11 +1,18 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import OpenAI from 'openai';
 
 export interface Env {
 	DB: D1Database;
 	JWT_SECRET: string;
-	YOUTUBE_API_KEY: string;
 	OPENAI_API_KEY: string;
+}
+
+export interface User {
+	UserId?: number;
+	email?: string;
+	user_password?: string;
+	analyze_requests?: number;
 }
 
 const verifyToken = async (request: Request, env: Env): Promise<{ user: any } | Response> => {
@@ -29,6 +36,16 @@ const verifyToken = async (request: Request, env: Env): Promise<{ user: any } | 
 	}
 };
 
+const checkIfUserExistsByEmail = async (email: string, env: Env): Promise<null | User> => {
+	return await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
+};
+
+const checkIfUserHasAnalyzeRequests = async (userId: number, env: Env): Promise<boolean> => {
+	const user = (await env.DB.prepare(`SELECT analyze_requests FROM Users WHERE UserId = ?`).bind(userId).first()) as User;
+	if (!user) return false;
+	return (user.analyze_requests as number) > 0;
+};
+
 export default {
 	async fetch(request, env): Promise<Response> {
 		const { pathname } = new URL(request.url);
@@ -43,18 +60,18 @@ export default {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
-			const user = await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
+			const user = await checkIfUserExistsByEmail(email, env);
 			if (user) {
-				console.log('User already exists');
 				return new Response(JSON.stringify({ error: 'User already exists' }), {
 					status: 400,
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
+
 			const saltRounds = 10;
 			const hashedPassword = await bcrypt.hash(password, saltRounds);
 			const { success } = await env.DB.prepare(`INSERT INTO Users (email, user_password, analyze_requests) VALUES (?, ?, ?)`)
-				.bind(email, hashedPassword, 0)
+				.bind(email, hashedPassword, 25)
 				.run();
 			if (success) {
 				return new Response(JSON.stringify({ message: 'User added successfully' }), {
@@ -78,7 +95,7 @@ export default {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
-			const user = await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
+			const user = await checkIfUserExistsByEmail(email, env);
 			if (!user) {
 				return new Response(JSON.stringify({ error: 'User not found' }), {
 					status: 404,
@@ -107,6 +124,7 @@ export default {
 			const user = authResponse.user;
 			console.log('Authenticated user:', user);
 
+			const goals = await env.DB.prepare(`SELECT goal_name, GoalId FROM Goals WHERE UserId = ?`).bind(user.userId).all();
 			const userFromDb = await env.DB.prepare(`SELECT email, analyze_requests FROM Users WHERE UserId = ?`).bind(user.userId).first();
 			if (!userFromDb) {
 				return new Response(JSON.stringify({ error: 'User not found' }), {
@@ -114,150 +132,88 @@ export default {
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
-			return new Response(JSON.stringify({ user: userFromDb }), {
+			return new Response(JSON.stringify({ user: userFromDb, goals: goals.results }), {
 				status: 200,
 				headers: { 'Content-Type': 'application/json' },
 			});
 		}
 
 		if (pathname === '/api/analyze') {
-			const authResponse = await verifyToken(request, env);
-			console.log('auth response', authResponse);
-			if (authResponse instanceof Response) return authResponse;
-
-			const user = authResponse.user;
-			const userFromDb = await env.DB.prepare(`SELECT UserId FROM Users WHERE UserId = ?`).bind(user.userId).first();
-			if (!userFromDb) {
-				return new Response(JSON.stringify({ error: 'User not found' }), {
-					status: 404,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-			console.log('after user from db');
-			const requestBody = await request.json();
-			// @ts-ignore
-			const { url: videoUrl, prompt } = requestBody;
-
-			if (!videoUrl) {
-				return new Response(JSON.stringify({ error: 'Missing video URL' }), {
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-
-			console.log(videoUrl);
-
-			// Step 3: Extract the video ID from the YouTube URL
-			const videoIdMatch =
-				videoUrl.match(/(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/) ||
-				videoUrl.match(/(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]+)/);
-			if (!videoIdMatch) {
-				return new Response(JSON.stringify({ error: 'Invalid YouTube URL' }), {
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-			const videoId = videoIdMatch[1];
-			console.log('video Id', videoId);
-
-			// Step 4: Fetch captions from YouTube API
 			try {
-				// Step 1: Check the video's privacy status
-				const videoStatusUrl = `https://www.googleapis.com/youtube/v3/videos?part=status,snippet&id=${videoId}&key=${env.YOUTUBE_API_KEY}`;
-				const videoStatusResponse = await fetch(videoStatusUrl);
-
-				if (!videoStatusResponse.ok) {
-					const errorDetails = await videoStatusResponse.json();
-					return new Response(JSON.stringify({ error: 'Failed to check video status', details: errorDetails }), {
-						status: videoStatusResponse.status,
+				const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+				const authResponse = await verifyToken(request, env);
+				if (authResponse instanceof Response) return authResponse;
+				const hasAnalyzeRequests = checkIfUserHasAnalyzeRequests(authResponse.user.userId, env);
+				if (!hasAnalyzeRequests) {
+					return new Response(JSON.stringify({ error: 'No analyze requests left' }), {
+						status: 400,
 						headers: { 'Content-Type': 'application/json' },
 					});
 				}
-				const videoData: any = await videoStatusResponse.json();
-				if (!videoData.items || videoData.items.length === 0) {
-					return new Response(JSON.stringify({ error: 'Video not found' }), {
-						status: 404,
+				const { goal, prompt: areaOfFocus, timeline }: any = await request.json();
+				const overAllTimeLine = timeline ? timeline : '1 year';
+				const planIncrements = overAllTimeLine === '1 day' ? '' : timeline === '1 week' ? 'daily' : 'weekly';
+
+				if (!goal) {
+					return new Response(JSON.stringify({ error: 'URL is required' }), {
+						status: 400,
 						headers: { 'Content-Type': 'application/json' },
 					});
 				}
+				const completion = await openai.chat.completions.create({
+					messages: [
+						{
+							role: 'system',
+							content:
+								'You are a helpful assistant. You are an expert in the subject of goal setting time management. You are eager to help define a path for people to acieve their goals',
+						},
+						{ role: 'user', content: `My goal is to ${goal}. ${areaOfFocus ? `My areas of focus are ${areaOfFocus}` : ''}` },
+						{
+							role: 'system',
+							content: `Outline a ${planIncrements} plan to achieve the goal in ${timeline}`,
+						},
+						{ role: 'system', content: 'Format your response in using Markdown syntax.' },
+					],
+					model: 'gpt-4o-mini',
+				});
 
-				const privacyStatus = videoData.items[0].status.privacyStatus;
-				if (privacyStatus !== 'public') {
-					return new Response(JSON.stringify({ error: 'Video is not public' }), {
-						status: 403,
-						headers: { 'Content-Type': 'application/json' },
-					});
-				}
+				const user = authResponse.user;
+				await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE UserId = ?`).bind(user.userId).run();
+				await env.DB.prepare(`INSERT INTO Goals (UserId, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
+					.bind(user.userId, goal, completion.choices[0].message.content, overAllTimeLine, areaOfFocus)
+					.run();
 
-				const captionsListUrl = `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}&key=${env.YOUTUBE_API_KEY}`;
-				const captionsListResponse = await fetch(captionsListUrl);
-				console.log('caption response', captionsListResponse);
-
-				if (!captionsListResponse.ok) {
-					return new Response(JSON.stringify({ error: 'Failed to fetch captions list from YouTube' }), {
-						status: captionsListResponse.status,
-						headers: { 'Content-Type': 'application/json' },
-					});
-				}
-
-				const captionsListData: any = await captionsListResponse.json();
-				if (!captionsListData.items || captionsListData.items.length === 0) {
-					return new Response(JSON.stringify({ error: 'No captions available for this video' }), {
-						status: 404,
-						headers: { 'Content-Type': 'application/json' },
-					});
-				}
-				console.log('Captions are available for this video', videoId);
-
-				const captionId = captionsListData.items[0].id;
-				const captionDataUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=ttml&key=${env.YOUTUBE_API_KEY}`;
-
-				const captionResponse = await fetch(captionDataUrl);
-				if (!captionResponse.ok) {
-					console.log('caption response', captionResponse);
-					return new Response(JSON.stringify({ error: 'Failed to fetch caption data' }), {
-						status: captionResponse.status,
-						headers: { 'Content-Type': 'application/json' },
-					});
-				}
-
-				const captionText = await captionResponse.text(); // captions in TTML or plain text depending on the format
-
-				// Step 5: Analyze captions using OpenAI API
-				const openAiResponse = await fetch('https://api.openai.com/v1/completions', {
-					method: 'POST',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${env.OPENAI_API_KEY}`,
-					},
-					body: JSON.stringify({
-						model: 'text-davinci-003',
-						prompt: `Analyze the following YouTube video transcript:\n${captionText}\n\n${prompt}`,
-						max_tokens: 1500,
+				return new Response(
+					JSON.stringify({
+						plan: completion.choices[0].message.content,
 					}),
-				});
-
-				if (!openAiResponse.ok) {
-					return new Response(JSON.stringify({ error: 'Failed to analyze captions with OpenAI' }), {
-						status: openAiResponse.status,
+					{
+						status: 200,
 						headers: { 'Content-Type': 'application/json' },
-					});
-				}
-
-				const openAiData: any = await openAiResponse.json();
-
-				// Return the analyzed data
-				return new Response(JSON.stringify({ analysis: openAiData.choices[0].text.trim() }), {
-					status: 200,
-					headers: { 'Content-Type': 'application/json' },
-				});
+					}
+				);
 			} catch (error) {
-				console.error('Error occurred during analysis:', error);
-				return new Response(JSON.stringify({ error: 'Internal server error' }), {
+				console.log(error);
+				// @ts-ignore
+				return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
 					status: 500,
 					headers: { 'Content-Type': 'application/json' },
 				});
 			}
+		}
+		if (pathname.startsWith('/api/goals/')) {
+			const goalId = pathname.split('/').pop();
+			const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE GoalId = ?`).bind(goalId).first();
+			if (!goal) {
+				return new Response(JSON.stringify({ error: 'Goal not found' }), {
+					status: 404,
+					headers: { 'Content-Type': 'application/json' },
+				});
+			}
+			return new Response(JSON.stringify({ goal }), {
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			});
 		}
 
 		return new Response('TubeScriptAiWorker');
