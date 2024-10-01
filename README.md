@@ -1,4 +1,4 @@
-# Cloudflare Worker - supporting https://www.mygoalcreator.com
+## Cloudflare Worker - supporting https://www.mygoalcreator.com
 
 ## Frontend Repo 
 - https://github.com/CodeJonesW/MyGoalCreator
