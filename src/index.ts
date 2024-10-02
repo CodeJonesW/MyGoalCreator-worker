@@ -201,8 +201,11 @@ export default {
 				});
 			}
 		}
-		if (pathname.startsWith('/api/goals/')) {
-			const goalId = pathname.split('/').pop();
+		if (pathname.startsWith('/api/goal')) {
+			const authResponse = await verifyToken(request, env);
+			if (authResponse instanceof Response) return authResponse;
+			const { goalId }: any = await request.json();
+
 			const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE GoalId = ?`).bind(goalId).first();
 			if (!goal) {
 				return new Response(JSON.stringify({ error: 'Goal not found' }), {
