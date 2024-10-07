@@ -140,6 +140,7 @@ export default {
 
 		if (pathname === '/api/analyze') {
 			try {
+				console.log('Analyzing goal');
 				const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 				const authResponse = await verifyToken(request, env);
 				if (authResponse instanceof Response) return authResponse;
