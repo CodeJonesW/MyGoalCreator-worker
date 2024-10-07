@@ -1,12 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import OpenAI from 'openai';
-import { Readable, Transform } from 'node:stream';
-import { text } from 'node:stream/consumers';
-import { pipeline } from 'node:stream/promises';
-
-// A Node.js-style Transform that converts data to uppercase
-// and appends a newline to the end of the output.
 
 export interface Env {
 	DB: D1Database;
@@ -184,22 +178,10 @@ export default {
 					],
 					model: 'gpt-4o-mini',
 				});
-				// for await (const chunk of completion) {
-				// 	const content = chunk.choices[0].delta?.content;
-				// 	if (content) {
-				// 		console.log(content); // Log or process the chunk as it arrives
-				// 	}
-				// }
 
-				// Step 2: Create the Transform stream to modify the data (uppercase conversion)
-				class MyTransform extends Transform {
-					_transform(chunk: any, _: any, cb: any) {
-						this.push(chunk.toString()); // Convert chunk to uppercase
-						cb();
-					}
-				}
-				// Initialize buffer for incomplete chunks
 				let buffer = '';
+				let rawTotalResponse = '';
+
 				// Step 3: Use a ReadableStream to send data incrementally to the client
 				const stream = new ReadableStream({
 					async start(controller) {
@@ -211,6 +193,8 @@ export default {
 
 							if (content) {
 								console.log('Received chunk:', content);
+
+								rawTotalResponse += content;
 
 								// Append current chunk to buffer
 								buffer += content;
@@ -239,16 +223,26 @@ export default {
 
 						// Close the stream once all chunks are processed
 						controller.enqueue(encoder.encode(`event: done\n\n`));
+
+						// Decrement analyze requests and save the goal plan to the database
+						try {
+							await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE UserId = ?`).bind(user.userId).run();
+
+							await env.DB.prepare(`INSERT INTO Goals (UserId, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
+								.bind(user.userId, goal, rawTotalResponse, overAllTimeLine, areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '')
+								.run();
+						} catch (error) {
+							console.log('Error saving goal:', error);
+						}
 						controller.close();
 					},
 				});
 
-				// Step 4: Return the stream as a response with proper headers
 				return new Response(stream, {
 					headers: {
-						'Content-Type': 'text/event-stream', // Set the response as streaming
-						'Cache-Control': 'no-cache', // No caching for streaming data
-						Connection: 'keep-alive', // Keep the connection open
+						'Content-Type': 'text/event-stream',
+						'Cache-Control': 'no-cache',
+						Connection: 'keep-alive',
 					},
 				});
 			} catch (error) {
