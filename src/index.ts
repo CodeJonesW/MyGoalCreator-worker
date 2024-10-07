@@ -143,7 +143,8 @@ export default {
 				const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 				const authResponse = await verifyToken(request, env);
 				if (authResponse instanceof Response) return authResponse;
-				const hasAnalyzeRequests = checkIfUserHasAnalyzeRequests(authResponse.user.userId, env);
+				const user = authResponse.user;
+				const hasAnalyzeRequests = checkIfUserHasAnalyzeRequests(user.userId, env);
 				if (!hasAnalyzeRequests) {
 					return new Response(JSON.stringify({ error: 'No analyze requests left' }), {
 						status: 400,
@@ -161,6 +162,7 @@ export default {
 					});
 				}
 				const completion = await openai.chat.completions.create({
+					stream: true,
 					messages: [
 						{
 							role: 'system',
@@ -177,21 +179,72 @@ export default {
 					model: 'gpt-4o-mini',
 				});
 
-				const user = authResponse.user;
-				await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE UserId = ?`).bind(user.userId).run();
-				await env.DB.prepare(`INSERT INTO Goals (UserId, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
-					.bind(user.userId, goal, completion.choices[0].message.content, overAllTimeLine, areaOfFocus)
-					.run();
+				let buffer = '';
+				let rawTotalResponse = '';
 
-				return new Response(
-					JSON.stringify({
-						plan: completion.choices[0].message.content,
-					}),
-					{
-						status: 200,
-						headers: { 'Content-Type': 'application/json' },
-					}
-				);
+				// Step 3: Use a ReadableStream to send data incrementally to the client
+				const stream = new ReadableStream({
+					async start(controller) {
+						const encoder = new TextEncoder();
+
+						// Process the streamed chunks from OpenAI
+						for await (const chunk of completion) {
+							let content = chunk.choices[0]?.delta?.content;
+
+							if (content) {
+								console.log('Received chunk:', content);
+
+								rawTotalResponse += content;
+
+								// Append current chunk to buffer
+								buffer += content;
+
+								// Detect markdown breaks: split by line or markdown syntax
+								let lines = buffer.split(/(?=\n|^#|\n#|\s-\s|\n\s\*\s)/); // Split by newline, heading markers (#), and bullet points (-, *)
+
+								buffer = ''; // Clear buffer after processing
+
+								lines.forEach((line, index) => {
+									if (index === lines.length - 1 && !line.endsWith('\n')) {
+										// Keep incomplete line in buffer
+										buffer = line;
+									} else {
+										// Send complete lines
+										controller.enqueue(encoder.encode(line + '\n'));
+									}
+								});
+							}
+						}
+
+						if (buffer) {
+							// Send any remaining buffer content
+							controller.enqueue(encoder.encode(buffer));
+						}
+
+						// Close the stream once all chunks are processed
+						controller.enqueue(encoder.encode(`event: done\n\n`));
+
+						// Decrement analyze requests and save the goal plan to the database
+						try {
+							await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE UserId = ?`).bind(user.userId).run();
+
+							await env.DB.prepare(`INSERT INTO Goals (UserId, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
+								.bind(user.userId, goal, rawTotalResponse, overAllTimeLine, areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '')
+								.run();
+						} catch (error) {
+							console.log('Error saving goal:', error);
+						}
+						controller.close();
+					},
+				});
+
+				return new Response(stream, {
+					headers: {
+						'Content-Type': 'text/event-stream',
+						'Cache-Control': 'no-cache',
+						Connection: 'keep-alive',
+					},
+				});
 			} catch (error) {
 				console.log(error);
 				// @ts-ignore
