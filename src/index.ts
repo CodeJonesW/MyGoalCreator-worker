@@ -198,19 +198,48 @@ export default {
 						cb();
 					}
 				}
-
+				// Initialize buffer for incomplete chunks
+				let buffer = '';
 				// Step 3: Use a ReadableStream to send data incrementally to the client
 				const stream = new ReadableStream({
 					async start(controller) {
 						const encoder = new TextEncoder();
+
+						// Process the streamed chunks from OpenAI
 						for await (const chunk of completion) {
-							const content = chunk.choices[0]?.delta?.content;
+							let content = chunk.choices[0]?.delta?.content;
+
 							if (content) {
-								const transformedChunk = content; // Apply transformation
-								controller.enqueue(encoder.encode(transformedChunk)); // Enqueue chunk to the stream
+								console.log('Received chunk:', content);
+
+								// Append current chunk to buffer
+								buffer += content;
+
+								// Detect markdown breaks: split by line or markdown syntax
+								let lines = buffer.split(/(?=\n|^#|\n#|\s-\s|\n\s\*\s)/); // Split by newline, heading markers (#), and bullet points (-, *)
+
+								buffer = ''; // Clear buffer after processing
+
+								lines.forEach((line, index) => {
+									if (index === lines.length - 1 && !line.endsWith('\n')) {
+										// Keep incomplete line in buffer
+										buffer = line;
+									} else {
+										// Send complete lines
+										controller.enqueue(encoder.encode(line + '\n'));
+									}
+								});
 							}
 						}
-						controller.close(); // Close the stream when done
+
+						if (buffer) {
+							// Send any remaining buffer content
+							controller.enqueue(encoder.encode(buffer));
+						}
+
+						// Close the stream once all chunks are processed
+						controller.enqueue(encoder.encode(`event: done\n\n`));
+						controller.close();
 					},
 				});
 
