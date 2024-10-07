@@ -1,6 +1,12 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import OpenAI from 'openai';
+import { Readable, Transform } from 'node:stream';
+import { text } from 'node:stream/consumers';
+import { pipeline } from 'node:stream/promises';
+
+// A Node.js-style Transform that converts data to uppercase
+// and appends a newline to the end of the output.
 
 export interface Env {
 	DB: D1Database;
@@ -143,7 +149,8 @@ export default {
 				const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 				const authResponse = await verifyToken(request, env);
 				if (authResponse instanceof Response) return authResponse;
-				const hasAnalyzeRequests = checkIfUserHasAnalyzeRequests(authResponse.user.userId, env);
+				const user = authResponse.user;
+				const hasAnalyzeRequests = checkIfUserHasAnalyzeRequests(user.userId, env);
 				if (!hasAnalyzeRequests) {
 					return new Response(JSON.stringify({ error: 'No analyze requests left' }), {
 						status: 400,
@@ -161,6 +168,7 @@ export default {
 					});
 				}
 				const completion = await openai.chat.completions.create({
+					stream: true,
 					messages: [
 						{
 							role: 'system',
@@ -176,22 +184,44 @@ export default {
 					],
 					model: 'gpt-4o-mini',
 				});
+				// for await (const chunk of completion) {
+				// 	const content = chunk.choices[0].delta?.content;
+				// 	if (content) {
+				// 		console.log(content); // Log or process the chunk as it arrives
+				// 	}
+				// }
 
-				const user = authResponse.user;
-				await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE UserId = ?`).bind(user.userId).run();
-				await env.DB.prepare(`INSERT INTO Goals (UserId, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
-					.bind(user.userId, goal, completion.choices[0].message.content, overAllTimeLine, areaOfFocus)
-					.run();
-
-				return new Response(
-					JSON.stringify({
-						plan: completion.choices[0].message.content,
-					}),
-					{
-						status: 200,
-						headers: { 'Content-Type': 'application/json' },
+				// Step 2: Create the Transform stream to modify the data (uppercase conversion)
+				class MyTransform extends Transform {
+					_transform(chunk: any, _: any, cb: any) {
+						this.push(chunk.toString()); // Convert chunk to uppercase
+						cb();
 					}
-				);
+				}
+
+				// Step 3: Use a ReadableStream to send data incrementally to the client
+				const stream = new ReadableStream({
+					async start(controller) {
+						const encoder = new TextEncoder();
+						for await (const chunk of completion) {
+							const content = chunk.choices[0]?.delta?.content;
+							if (content) {
+								const transformedChunk = content; // Apply transformation
+								controller.enqueue(encoder.encode(transformedChunk)); // Enqueue chunk to the stream
+							}
+						}
+						controller.close(); // Close the stream when done
+					},
+				});
+
+				// Step 4: Return the stream as a response with proper headers
+				return new Response(stream, {
+					headers: {
+						'Content-Type': 'text/event-stream', // Set the response as streaming
+						'Cache-Control': 'no-cache', // No caching for streaming data
+						Connection: 'keep-alive', // Keep the connection open
+					},
+				});
 			} catch (error) {
 				console.log(error);
 				// @ts-ignore
