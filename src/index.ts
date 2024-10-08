@@ -201,7 +201,7 @@ export default {
 								buffer += content;
 
 								// Detect markdown breaks: split by line or markdown syntax
-								let lines = buffer.split(/(?=\n|^#|\n#|\s-\s|\n\s\*\s)/); // Split by newline, heading markers (#), and bullet points (-, *)
+								let lines = buffer.split(/(?=\n|^#{1,4}|\s-\s|\n\s\*\s|\n\d+\.\s)/); // Split by newline, heading markers (#), and bullet points (-, *)
 
 								buffer = ''; // Clear buffer after processing
 
