@@ -1,50 +1,9 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
+import { verifyToken } from './utils/auth';
 import OpenAI from 'openai';
-
-export interface Env {
-	DB: D1Database;
-	JWT_SECRET: string;
-	OPENAI_API_KEY: string;
-}
-
-export interface User {
-	UserId?: number;
-	email?: string;
-	user_password?: string;
-	analyze_requests?: number;
-}
-
-const verifyToken = async (request: Request, env: Env): Promise<{ user: any } | Response> => {
-	const authHeader = request.headers.get('Authorization');
-	if (!authHeader || !authHeader.startsWith('Bearer ')) {
-		return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-			status: 401,
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
-
-	const token = authHeader.split(' ')[1];
-	try {
-		const decoded = jwt.verify(token, env.JWT_SECRET);
-		return { user: decoded };
-	} catch (error) {
-		return new Response(JSON.stringify({ error: 'Invalid token' }), {
-			status: 403,
-			headers: { 'Content-Type': 'application/json' },
-		});
-	}
-};
-
-const checkIfUserExistsByEmail = async (email: string, env: Env): Promise<null | User> => {
-	return await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
-};
-
-const checkIfUserHasAnalyzeRequests = async (userId: number, env: Env): Promise<boolean> => {
-	const user = (await env.DB.prepare(`SELECT analyze_requests FROM Users WHERE UserId = ?`).bind(userId).first()) as User;
-	if (!user) return false;
-	return (user.analyze_requests as number) > 0;
-};
+import { Env } from './types';
+import { loginRoute } from './routes/loginRoute';
+import { profileRoute } from './routes/profileRoute';
+import { checkIfUserHasAnalyzeRequests } from './utils/db_queries';
 
 export default {
 	async fetch(request, env): Promise<Response> {
@@ -52,95 +11,20 @@ export default {
 		console.log('pathname', pathname);
 
 		if (pathname === '/api/register') {
-			const email = request.headers.get('x-email');
-			const password = request.headers.get('x-password');
-			if (!email || !password) {
-				return new Response(JSON.stringify({ error: 'Missing email or password' }), {
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-			const user = await checkIfUserExistsByEmail(email, env);
-			if (user) {
-				return new Response(JSON.stringify({ error: 'User already exists' }), {
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-
-			const saltRounds = 10;
-			const hashedPassword = await bcrypt.hash(password, saltRounds);
-			const { success } = await env.DB.prepare(`INSERT INTO Users (email, user_password, analyze_requests) VALUES (?, ?, ?)`)
-				.bind(email, hashedPassword, 25)
-				.run();
-			if (success) {
-				return new Response(JSON.stringify({ message: 'User added successfully' }), {
-					status: 200,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			} else {
-				return new Response(JSON.stringify({ error: 'Failed to insert user' }), {
-					status: 500,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
+			const { registerRoute } = await import('./routes/registerRoute');
+			return await registerRoute(request, env);
 		}
 
 		if (pathname === '/api/login') {
-			const email = request.headers.get('x-email');
-			const password = request.headers.get('x-password');
-			if (!email || !password) {
-				return new Response(JSON.stringify({ error: 'Missing email or password' }), {
-					status: 400,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-			const user = await checkIfUserExistsByEmail(email, env);
-			if (!user) {
-				return new Response(JSON.stringify({ error: 'User not found' }), {
-					status: 404,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-			const match = await bcrypt.compare(password, user.user_password as string);
-			if (!match) {
-				return new Response(JSON.stringify({ error: 'Invalid password' }), {
-					status: 401,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-			const token = jwt.sign({ email: user.email, userId: user.UserId }, env.JWT_SECRET, { expiresIn: '1h' });
-
-			return new Response(JSON.stringify({ message: 'Login successful', access_token: token }), {
-				status: 200,
-				headers: { 'Content-Type': 'application/json' },
-			});
+			return await loginRoute(request, env);
 		}
 
 		if (pathname === '/api/profile') {
-			const authResponse = await verifyToken(request, env);
-			if (authResponse instanceof Response) return authResponse;
-
-			const user = authResponse.user;
-			console.log('Authenticated user:', user);
-
-			const goals = await env.DB.prepare(`SELECT goal_name, GoalId FROM Goals WHERE UserId = ?`).bind(user.userId).all();
-			const userFromDb = await env.DB.prepare(`SELECT email, analyze_requests FROM Users WHERE UserId = ?`).bind(user.userId).first();
-			if (!userFromDb) {
-				return new Response(JSON.stringify({ error: 'User not found' }), {
-					status: 404,
-					headers: { 'Content-Type': 'application/json' },
-				});
-			}
-			return new Response(JSON.stringify({ user: userFromDb, goals: goals.results }), {
-				status: 200,
-				headers: { 'Content-Type': 'application/json' },
-			});
+			return await profileRoute(request, env);
 		}
 
 		if (pathname === '/api/analyze') {
 			try {
-				console.log('Analyzing goal');
 				const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 				const authResponse = await verifyToken(request, env);
 				if (authResponse instanceof Response) return authResponse;
