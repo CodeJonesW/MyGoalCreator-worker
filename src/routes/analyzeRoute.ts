@@ -37,8 +37,15 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 					content: 'You are a helpful assistant. You are an expert in goal setting and time management.',
 				},
 				{ role: 'user', content: `My goal is to ${goal}. ${areaOfFocus ? `My areas of focus are ${areaOfFocus}` : ''}` },
+				{
+					role: 'system',
+					content: `Assume the role of an expert in the field of this goal`,
+				},
 				{ role: 'system', content: `Outline a ${planIncrements} plan to achieve the goal in ${timeline}` },
-				{ role: 'system', content: 'Format your response using Markdown syntax.' },
+				{
+					role: 'system',
+					content: `Format your response in Markdown. Ensure that new lines are properly marked with double spaces at the end of each line to indicate line breaks, as per Markdown syntax.`,
+				},
 			],
 			model: 'gpt-4o-mini',
 		});
