@@ -1,9 +1,6 @@
-import { verifyToken } from './utils/auth';
-import OpenAI from 'openai';
 import { Env } from './types';
 import { loginRoute } from './routes/loginRoute';
 import { profileRoute } from './routes/profileRoute';
-import { checkIfUserHasAnalyzeRequests } from './utils/db_queries';
 import { analyzeRoute } from './routes/analyzeRoute';
 import { goalByIdRoute } from './routes/goalByIdRoute';
 
