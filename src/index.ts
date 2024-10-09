@@ -3,13 +3,13 @@ import { loginRoute } from './routes/loginRoute';
 import { profileRoute } from './routes/profileRoute';
 import { analyzeRoute } from './routes/analyzeRoute';
 import { goalByIdRoute } from './routes/goalByIdRoute';
+import { registerRoute } from './routes/registerRoute';
 
 export default {
 	async fetch(request, env): Promise<Response> {
 		const { pathname } = new URL(request.url);
 
 		if (pathname === '/api/register') {
-			const { registerRoute } = await import('./routes/registerRoute');
 			return await registerRoute(request, env);
 		}
 
@@ -29,6 +29,6 @@ export default {
 			return goalByIdRoute(request, env);
 		}
 
-		return new Response('TubeScriptAiWorker');
+		return new Response('Not found', { status: 404 });
 	},
 } satisfies ExportedHandler<Env>;
