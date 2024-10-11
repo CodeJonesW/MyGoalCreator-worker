@@ -1,7 +1,7 @@
 import { Env } from '../types';
 import OpenAI from 'openai';
 import { verifyToken } from '../utils/auth';
-// import { checkIfUserHasAnalyzeRequests } from '../utils/db_queries';
+import { checkIfUserHasAnalyzeRequests } from '../utils/db_queries';
 
 export const analyzeRoute = async (request: Request, env: Env): Promise<Response> => {
 	try {
@@ -10,13 +10,13 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 		if (authResponse instanceof Response) return authResponse;
 
 		const user = authResponse.user;
-		// const hasAnalyzeRequests = await checkIfUserHasAnalyzeRequests(user.userId, env);
-		// if (!hasAnalyzeRequests) {
-		// 	return new Response(JSON.stringify({ error: 'No analyze requests left' }), {
-		// 		status: 400,
-		// 		headers: { 'Content-Type': 'application/json' },
-		// 	});
-		// }
+		const hasAnalyzeRequests = await checkIfUserHasAnalyzeRequests(user.userId, env);
+		if (!hasAnalyzeRequests) {
+			return new Response(JSON.stringify({ error: 'No analyze requests left' }), {
+				status: 400,
+				headers: { 'Content-Type': 'application/json' },
+			});
+		}
 
 		const { goal, prompt: areaOfFocus, timeline }: any = await request.json();
 		const overAllTimeLine = timeline ? timeline : '1 year';
