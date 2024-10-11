@@ -34,17 +34,25 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 			messages: [
 				{
 					role: 'system',
-					content: 'You are a helpful assistant. You are an expert in goal setting and time management.',
+					content: `You are an expert in the field of ${goal}`,
 				},
 				{ role: 'user', content: `My goal is to ${goal}. ${areaOfFocus ? `My areas of focus are ${areaOfFocus}` : ''}` },
 				{
 					role: 'system',
-					content: `Assume the role of an expert in the field of this goal`,
+					content: `You are passionate about explaining sub points of the goal in detail`,
 				},
-				{ role: 'system', content: `Outline a ${planIncrements} plan to achieve the goal in ${timeline}` },
+				{ role: 'system', content: `Outline detailed plan to achieve the goal in ${timeline}.` },
+				{ role: 'system', content: `Expand or contract the plan relative to the length of the goal's timeline.` },
 				{
 					role: 'system',
-					content: `Format your response in Markdown. Ensure that new lines are properly marked with double spaces at the end of each line to indicate line breaks, as per Markdown syntax.`,
+					content: `Please format your response in valid Markdown. Ensure that:
+					- Headings use proper Markdown syntax (e.g., "#", "##").
+					- Lists are correctly formatted using "-" for unordered lists or "1.", "2." for ordered lists.
+					- New lines are indicated by two trailing spaces for line breaks.
+					- Code blocks are properly enclosed with triple backticks (\`\`\`) for both inline and block code.
+					- Bold and italics are properly marked with double asterisks ("**") or underscores ("_").
+					
+					Ensure the Markdown is easy to copy and paste into any Markdown editor.`,
 				},
 			],
 			model: 'gpt-4o-mini',

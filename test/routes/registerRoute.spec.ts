@@ -1,9 +1,8 @@
-import { describe, it, expect, vi } from 'vitest'; // Use `vi` from Vitest for mocking
-import { registerRoute } from '../../src/routes/registerRoute'; // Adjust path as needed
-import { Env } from '../../src/types'; // Import the Env type
+import { describe, it, expect, vi } from 'vitest';
+import { registerRoute } from '../../src/routes/registerRoute';
+import { Env } from '../../src/types';
 import bcrypt from 'bcryptjs';
 
-// Mocking the DB and bcrypt with Vitest's `vi`
 const mockEnv: Env = {
 	DB: {
 		prepare: vi.fn().mockReturnThis(),
@@ -33,7 +32,6 @@ describe('Register Route', () => {
 			}),
 		});
 
-		// Mock that the user already exists in the DB
 		// @ts-ignore
 		mockEnv.DB.first = vi.fn().mockResolvedValue({ email: 'tester@example.com' });
 
@@ -53,13 +51,11 @@ describe('Register Route', () => {
 			}),
 		});
 
-		// Mock that the user does not exist
 		// @ts-ignore
 		mockEnv.DB.first = vi.fn().mockResolvedValue(null);
 		// @ts-ignore
 		mockEnv.DB.run = vi.fn().mockResolvedValue({ success: true });
 
-		// Mock bcrypt.hash
 		// @ts-ignore
 		vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashedpassword');
 
@@ -80,11 +76,9 @@ describe('Register Route', () => {
 			}),
 		});
 
-		// Mock bcrypt.hash
 		// @ts-ignore
 		vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashedpassword');
 
-		// Simulate a DB error
 		// @ts-ignore
 		mockEnv.DB.run = vi.fn().mockResolvedValue({ success: false });
 
