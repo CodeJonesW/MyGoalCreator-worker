@@ -9,6 +9,9 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 
 	const goalsQuery = await env.DB.prepare(`SELECT goal_name, GoalId FROM Goals WHERE UserId = ?`).bind(user.userId).all();
 	const userFromDb = await env.DB.prepare(`SELECT email, analyze_requests FROM Users WHERE UserId = ?`).bind(user.userId).first();
+	const recentGoal = await env.DB.prepare(`SELECT GoalId, plan FROM Goals WHERE UserId = ? ORDER BY GoalId DESC LIMIT 1`)
+		.bind(user.userId)
+		.first();
 
 	if (!userFromDb) {
 		return new Response(JSON.stringify({ error: 'User not found' }), {
@@ -17,7 +20,7 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 		});
 	}
 
-	return new Response(JSON.stringify({ user: userFromDb, goals: goalsQuery.results }), {
+	return new Response(JSON.stringify({ user: userFromDb, goals: goalsQuery.results, recentGoal: recentGoal ? recentGoal.results : null }), {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' },
 	});
