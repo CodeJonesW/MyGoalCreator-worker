@@ -4,6 +4,7 @@ import { profileRoute } from './routes/profileRoute';
 import { analyzeRoute } from './routes/analyzeRoute';
 import { goalByIdRoute } from './routes/goalByIdRoute';
 import { registerRoute } from './routes/registerRoute';
+import { createSubGoalRoute } from './routes/subGoalRoute';
 
 export default {
 	async fetch(request, env): Promise<Response> {
@@ -26,7 +27,11 @@ export default {
 		}
 
 		if (pathname.startsWith('/api/goal')) {
-			return goalByIdRoute(request, env);
+			return await goalByIdRoute(request, env);
+		}
+
+		if (pathname === '/api/subgoal') {
+			return await createSubGoalRoute(request, env);
 		}
 
 		return new Response('Not found', { status: 404 });

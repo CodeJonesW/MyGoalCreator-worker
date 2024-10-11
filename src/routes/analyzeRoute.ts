@@ -45,14 +45,14 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 				{ role: 'system', content: `Expand or contract the plan relative to the length of the goal's timeline.` },
 				{
 					role: 'system',
-					content: `Please format your response in valid Markdown. Ensure that:
-					- Headings use proper Markdown syntax (e.g., "#", "##").
-					- Lists are correctly formatted using "-" for unordered lists or "1.", "2." for ordered lists.
-					- New lines are indicated by two trailing spaces for line breaks.
-					- Code blocks are properly enclosed with triple backticks (\`\`\`) for both inline and block code.
-					- Bold and italics are properly marked with double asterisks ("**") or underscores ("_").
-					
-					Ensure the Markdown is easy to copy and paste into any Markdown editor.`,
+					content: `Please format your response in valid Markdown, adhering to the following:
+					- Use headings with "#" for levels (e.g., "#", "##").
+					- Use "- " for bullet points and "1." for numbered lists.
+					- Line breaks should use two trailing spaces.
+					- Enclose code blocks with triple backticks (\`\`\`).
+					- Avoid empty lines in bullet points or lists.
+				  
+					Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
 				},
 			],
 			model: 'gpt-4o-mini',
