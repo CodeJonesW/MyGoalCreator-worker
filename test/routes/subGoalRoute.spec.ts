@@ -49,7 +49,7 @@ describe('createSubGoalRoute', () => {
 
 		const request = new Request('http://example.com', {
 			method: 'POST',
-			body: JSON.stringify({ goalId: 1, sub_goal_name: 'subgoal', lineLocation: 1 }),
+			body: JSON.stringify({ goalId: 1, sub_goal_name: 'subgoal', line_number: 1 }),
 		});
 		const response = await createSubGoalRoute(request, mockEnv);
 
@@ -70,7 +70,7 @@ describe('createSubGoalRoute', () => {
 
 		const request = new Request('http://example.com', {
 			method: 'POST',
-			body: JSON.stringify({ goalId: 1, sub_goal_name: 'subgoal', lineLocation: 1 }),
+			body: JSON.stringify({ goalId: 1, sub_goal_name: 'subgoal', line_number: 1 }),
 		});
 		const response = await createSubGoalRoute(request, mockEnv);
 
@@ -93,7 +93,7 @@ describe('createSubGoalRoute', () => {
 
 		const request = new Request('http://localhost:8787', {
 			method: 'POST',
-			body: JSON.stringify({ goalId: 1, sub_goal_name: 'subgoal', lineLocation: 1 }),
+			body: JSON.stringify({ goalId: 1, sub_goal_name: 'subgoal', line_number: 1 }),
 		});
 		const response = await createSubGoalRoute(request, mockEnv);
 

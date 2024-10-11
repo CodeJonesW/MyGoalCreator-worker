@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS Users (
     user_password TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP 
 );
+
 CREATE TABLE IF NOT EXISTS Goals (
     GoalId INTEGER PRIMARY KEY,
     UserId INTEGER,
@@ -21,7 +22,7 @@ CREATE TABLE IF NOT EXISTS SubGoals (
     GoalId INTEGER,
     sub_goal_name TEXT,
     plan TEXT,
-    lineLocation INTEGER,
+    line_number INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     FOREIGN KEY(GoalId) REFERENCES Goals(GoalId),
     FOREIGN KEY(SubGoalId) REFERENCES SubGoals(SubGoalId)
