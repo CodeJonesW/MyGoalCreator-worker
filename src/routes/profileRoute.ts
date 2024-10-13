@@ -7,10 +7,10 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 
 	const user = authResponse.user;
 
-	const goalsQuery = await env.DB.prepare(`SELECT goal_name, GoalId FROM Goals WHERE UserId = ?`).bind(user.userId).all();
-	const userFromDb = await env.DB.prepare(`SELECT email, analyze_requests FROM Users WHERE UserId = ?`).bind(user.userId).first();
-	const recentGoal = await env.DB.prepare(`SELECT GoalId, plan FROM Goals WHERE UserId = ? ORDER BY GoalId DESC LIMIT 1`)
-		.bind(user.userId)
+	const goalsQuery = await env.DB.prepare(`SELECT goal_name, GoalId FROM Goals WHERE user_id = ?`).bind(user.user_id).all();
+	const userFromDb = await env.DB.prepare(`SELECT email, analyze_requests FROM Users WHERE user_id = ?`).bind(user.user_id).first();
+	const recentGoal = await env.DB.prepare(`SELECT GoalId, plan FROM Goals WHERE user_id = ? ORDER BY GoalId DESC LIMIT 1`)
+		.bind(user.user_id)
 		.first();
 
 	if (!userFromDb) {

@@ -3,12 +3,14 @@ import OpenAI from 'openai';
 import { verifyToken } from '../utils/auth';
 
 export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+	console.log('Create SubGoal Route');
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
 
 	// Extract the required fields from the request body
 	const { goalId, sub_goal_name, line_number }: any = await request.json();
+	console.log('GoalId', goalId, 'SubGoalName', sub_goal_name, 'LineNumber', line_number);
 
 	// Check if the goal exists
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE GoalId = ?`).bind(goalId).first();
@@ -18,6 +20,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
+	console.log('Goal found', goal);
 
 	const subGoal = await env.DB.prepare(`SELECT * FROM SubGoals WHERE GoalId = ? AND sub_goal_name = ?`).bind(goalId, sub_goal_name).first();
 	if (subGoal) {
@@ -26,7 +29,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
-
+	console.log('Goal found', goal);
 	const { goal_name, plan } = goal;
 	const completion = await openai.chat.completions.create({
 		stream: false,
@@ -36,7 +39,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				content: `You are an expert in the field of ${goal_name} and are helping the user achieve their goal.`,
 			},
 			{ role: 'user', content: `I need to ${sub_goal_name}.` },
-			{ role: 'system', content: `Design a plan and provide resources to help the user achieve their goal` },
+			{ role: 'system', content: `Explain the steps to achieve this goal and provide resources.` },
 			{
 				role: 'system',
 				content: `Please format your response in valid Markdown, adhering to the following:
@@ -56,6 +59,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 			// @ts-ignore
 			.bind(goalId, sub_goal_name, completion.choices[0].message.content, line_number)
 			.run();
+		console.log('SubGoal created successfully', result);
 
 		if (result.success) {
 			return new Response(
@@ -75,6 +79,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				}
 			);
 		} else {
+			console.log('Failed to insert subgoal');
 			throw new Error('Failed to insert subgoal');
 		}
 	} catch (error) {

@@ -56,7 +56,7 @@ describe('Analyze Route', () => {
 		const { verifyToken } = await import('../../src/utils/auth');
 		// @ts-ignore
 		verifyToken.mockResolvedValue({
-			user: { userId: 1 },
+			user: { user_id: 1 },
 		});
 
 		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db_queries');
@@ -80,7 +80,7 @@ describe('Analyze Route', () => {
 		const { verifyToken } = await import('../../src/utils/auth');
 		// @ts-ignore
 		verifyToken.mockResolvedValue({
-			user: { userId: 1 },
+			user: { user_id: 1 },
 		});
 
 		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db_queries');
@@ -99,10 +99,10 @@ describe('Analyze Route', () => {
 		expect(text).toContain('Test chunk part 2'); // Check for second chunk
 
 		// Verify that the goal got inserted into the database with the correct values
-		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('INSERT INTO Goals (UserId, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)');
+		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('INSERT INTO Goals (user_id, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)');
 		// @ts-ignore
 		expect(mockEnv.DB.bind).toHaveBeenCalledWith(
-			1, // UserId
+			1, // user_id
 			'Test goal', // Goal name
 			expect.any(String), // The full response content as the plan
 			'1 week', // Timeline
@@ -112,8 +112,8 @@ describe('Analyze Route', () => {
 		expect(mockEnv.DB.run).toHaveBeenCalledTimes(2); // One for inserting the goal and one for updating analyze requests
 
 		// Verify that the user's analyze requests were decremented
-		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE UserId = ?');
+		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?');
 		// @ts-ignore
-		expect(mockEnv.DB.bind).toHaveBeenCalledWith(1); // UserId
+		expect(mockEnv.DB.bind).toHaveBeenCalledWith(1); // user_id
 	});
 });

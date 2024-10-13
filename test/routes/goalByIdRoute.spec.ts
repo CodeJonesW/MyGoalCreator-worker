@@ -48,7 +48,7 @@ describe('Goal By Id Route', () => {
 		const { verifyToken } = await import('../../src/utils/auth');
 		// @ts-ignore
 		verifyToken.mockResolvedValue({
-			user: { userId: 1 },
+			user: { user_id: 1 },
 		});
 		// @ts-ignore
 		mockEnv.DB.first.mockResolvedValueOnce(null); // Simulate no goal found
@@ -70,7 +70,7 @@ describe('Goal By Id Route', () => {
 		const { verifyToken } = await import('../../src/utils/auth');
 		// @ts-ignore
 		verifyToken.mockResolvedValue({
-			user: { userId: 1 },
+			user: { user_id: 1 },
 		});
 
 		const mockGoal = {
