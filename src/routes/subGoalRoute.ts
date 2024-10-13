@@ -44,10 +44,12 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				role: 'system',
 				content: `Please format your response in valid Markdown, adhering to the following:
 				- Use headings with "#" for levels (e.g., "#", "##").
-				- Use "- " for bullet points and "1." for numbered lists.
+				- Use "- " for bullet points
 				- Line breaks should use two trailing spaces.
 				- Enclose code blocks with triple backticks (\`\`\`).
 				- Avoid empty lines in bullet points or lists.
+				- Use a divider (---) between sections.
+				- Use 4 spaces prior to nested bullet points.
 			  
 				Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
 			},
