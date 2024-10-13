@@ -65,7 +65,7 @@ describe('Login Route', () => {
 		mockEnv.DB.first = vi.fn().mockResolvedValue({
 			email: 'test@example.com',
 			user_password: 'hashedpassword',
-			UserId: 1,
+			user_id: 1,
 		});
 
 		// Mock bcrypt.compare returning true (valid password)

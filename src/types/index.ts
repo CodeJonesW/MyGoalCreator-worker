@@ -5,7 +5,7 @@ export interface Env {
 }
 
 export interface User {
-	UserId?: number;
+	user_id?: number;
 	email?: string;
 	user_password?: string;
 	analyze_requests?: number;

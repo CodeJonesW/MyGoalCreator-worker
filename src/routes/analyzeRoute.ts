@@ -10,7 +10,7 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 		if (authResponse instanceof Response) return authResponse;
 
 		const user = authResponse.user;
-		const hasAnalyzeRequests = await checkIfUserHasAnalyzeRequests(user.userId, env);
+		const hasAnalyzeRequests = await checkIfUserHasAnalyzeRequests(user.user_id, env);
 		if (!hasAnalyzeRequests) {
 			return new Response(JSON.stringify({ error: 'No analyze requests left' }), {
 				status: 400,
@@ -48,10 +48,11 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 					content: `Please format your response in valid Markdown, adhering to the following:
 					- Use headings with "#" for levels (e.g., "#", "##").
 					- Use "- " for bullet points
-					- Use "1." for numbered lists
 					- Line breaks should use two trailing spaces.
 					- Enclose code blocks with triple backticks (\`\`\`).
 					- Avoid empty lines in bullet points or lists.
+					- Use a divider (---) between sections.
+					- Use 4 spaces prior to nested bullet points.
 				  
 					Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
 				},
@@ -92,9 +93,9 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 				controller.enqueue(encoder.encode(`event: done\n\n`));
 
 				try {
-					await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE UserId = ?`).bind(user.userId).run();
-					await env.DB.prepare(`INSERT INTO Goals (UserId, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
-						.bind(user.userId, goal, rawTotalResponse, overAllTimeLine, areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '')
+					await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?`).bind(user.user_id).run();
+					await env.DB.prepare(`INSERT INTO Goals (user_id, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
+						.bind(user.user_id, goal, rawTotalResponse, overAllTimeLine, areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '')
 						.run();
 				} catch (error) {
 					console.log('Error saving goal:', error);

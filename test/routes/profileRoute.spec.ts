@@ -26,7 +26,7 @@ describe('Profile Route', () => {
 		const { verifyToken } = await import('../../src/utils/auth'); // Updated path to auth
 		// @ts-ignore
 		verifyToken.mockResolvedValue({
-			user: { userId: 1, email: 'test@example.com' },
+			user: { user_id: 1, email: 'test@example.com' },
 		});
 
 		// Mock the database to return no user
@@ -48,7 +48,7 @@ describe('Profile Route', () => {
 		const { verifyToken } = await import('../../src/utils/auth'); // Updated path to auth
 		// @ts-ignore
 		verifyToken.mockResolvedValue({
-			user: { userId: 1, email: 'test@example.com' },
+			user: { user_id: 1, email: 'test@example.com' },
 		});
 
 		// Mock user data and goals from the database
@@ -59,7 +59,7 @@ describe('Profile Route', () => {
 		});
 		// @ts-ignore
 		mockEnv.DB.all.mockResolvedValue({
-			results: [{ goal_name: 'Learn React', GoalId: 1 }],
+			results: [{ goal_name: 'Learn React', goal_id: 1 }],
 		});
 
 		const response = await profileRoute(request, mockEnv);

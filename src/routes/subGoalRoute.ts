@@ -3,15 +3,16 @@ import OpenAI from 'openai';
 import { verifyToken } from '../utils/auth';
 
 export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+	console.log('Create SubGoal Route');
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
 
 	// Extract the required fields from the request body
-	const { goalId, sub_goal_name, line_number }: any = await request.json();
+	const { goal_id, sub_goal_name, line_number }: any = await request.json();
 
 	// Check if the goal exists
-	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE GoalId = ?`).bind(goalId).first();
+	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 	if (!goal) {
 		return new Response(JSON.stringify({ error: 'Goal not found' }), {
 			status: 404,
@@ -19,14 +20,15 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 		});
 	}
 
-	const subGoal = await env.DB.prepare(`SELECT * FROM SubGoals WHERE GoalId = ? AND sub_goal_name = ?`).bind(goalId, sub_goal_name).first();
+	const subGoal = await env.DB.prepare(`SELECT * FROM SubGoals WHERE goal_id = ? AND sub_goal_name = ?`)
+		.bind(goal_id, sub_goal_name)
+		.first();
 	if (subGoal) {
 		return new Response(JSON.stringify({ message: 'success', subGoal }), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
-
 	const { goal_name, plan } = goal;
 	const completion = await openai.chat.completions.create({
 		stream: false,
@@ -36,15 +38,18 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				content: `You are an expert in the field of ${goal_name} and are helping the user achieve their goal.`,
 			},
 			{ role: 'user', content: `I need to ${sub_goal_name}.` },
-			{ role: 'system', content: `Design a plan and provide resources to help the user achieve their goal` },
+			{ role: 'system', content: `You are aware this goal is in the context of this overall plan: ${plan}` },
+			{ role: 'system', content: `Explain the steps to achieve this goal and provide resources.` },
 			{
 				role: 'system',
 				content: `Please format your response in valid Markdown, adhering to the following:
 				- Use headings with "#" for levels (e.g., "#", "##").
-				- Use "- " for bullet points and "1." for numbered lists.
+				- Use "- " for bullet points
 				- Line breaks should use two trailing spaces.
 				- Enclose code blocks with triple backticks (\`\`\`).
 				- Avoid empty lines in bullet points or lists.
+				- Use a divider (---) between sections.
+				- Use 4 spaces prior to nested bullet points.
 			  
 				Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
 			},
@@ -52,10 +57,11 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 		model: 'gpt-4o-mini',
 	});
 	try {
-		const result = await env.DB.prepare(`INSERT INTO SubGoals (GoalId, sub_goal_name, plan, line_number) VALUES (?, ?, ?, ?)`)
+		const result = await env.DB.prepare(`INSERT INTO SubGoals (goal_id, sub_goal_name, plan, line_number) VALUES (?, ?, ?, ?)`)
 			// @ts-ignore
-			.bind(goalId, sub_goal_name, completion.choices[0].message.content, line_number)
+			.bind(goal_id, sub_goal_name, completion.choices[0].message.content, line_number)
 			.run();
+		console.log('SubGoal created successfully', result);
 
 		if (result.success) {
 			return new Response(
@@ -66,7 +72,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 						plan: completion.choices[0].message.content,
 						line_number,
 						// @ts-ignore
-						subGoalId: result.lastInsertRowid,
+						sub_goal_id: result.lastInsertRowid,
 					},
 				}),
 				{
@@ -75,6 +81,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				}
 			);
 		} else {
+			console.log('Failed to insert subgoal');
 			throw new Error('Failed to insert subgoal');
 		}
 	} catch (error) {
