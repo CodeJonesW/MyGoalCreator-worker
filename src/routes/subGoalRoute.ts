@@ -10,7 +10,6 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 
 	// Extract the required fields from the request body
 	const { goal_id, sub_goal_name, line_number }: any = await request.json();
-	console.log('goal_id', goal_id, 'SubGoalName', sub_goal_name, 'LineNumber', line_number);
 
 	// Check if the goal exists
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
@@ -20,7 +19,6 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
-	console.log('Goal found', goal);
 
 	const subGoal = await env.DB.prepare(`SELECT * FROM SubGoals WHERE goal_id = ? AND sub_goal_name = ?`)
 		.bind(goal_id, sub_goal_name)
@@ -31,7 +29,6 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
-	console.log('Goal found', goal);
 	const { goal_name, plan } = goal;
 	const completion = await openai.chat.completions.create({
 		stream: false,
@@ -41,6 +38,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				content: `You are an expert in the field of ${goal_name} and are helping the user achieve their goal.`,
 			},
 			{ role: 'user', content: `I need to ${sub_goal_name}.` },
+			{ role: 'system', content: `You are aware this goal is in the context of this overall plan: ${plan}` },
 			{ role: 'system', content: `Explain the steps to achieve this goal and provide resources.` },
 			{
 				role: 'system',
@@ -72,7 +70,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 						plan: completion.choices[0].message.content,
 						line_number,
 						// @ts-ignore
-						subGoalId: result.lastInsertRowid,
+						sub_goal_id: result.lastInsertRowid,
 					},
 				}),
 				{

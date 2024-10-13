@@ -79,7 +79,7 @@ describe('createSubGoalRoute', () => {
 		// //@ts-ignore
 		// expect(json.message).toBe('SubGoal created successfully');
 		// //@ts-ignore
-		// expect(json.subGoalId).toBe(123);
+		// expect(json.sub_goal_id).toBe(123);
 	});
 
 	it('should return 500 if subgoal insertion fails', async () => {

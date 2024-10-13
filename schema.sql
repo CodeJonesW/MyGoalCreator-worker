@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS SubGoals;
 DROP TABLE IF EXISTS Goals;
-DROP TABLE IF EXISTS Users;
+-- DROP TABLE IF EXISTS Users;
 
 
 CREATE TABLE IF NOT EXISTS Users (
@@ -22,18 +22,18 @@ CREATE TABLE IF NOT EXISTS Goals (
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
 );
 CREATE TABLE IF NOT EXISTS SubGoals (
-    SubGoalId INTEGER PRIMARY KEY,
+    sub_goal_id INTEGER PRIMARY KEY,
     goal_id INTEGER,
     sub_goal_name TEXT,
     plan TEXT,
     line_number INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     FOREIGN KEY(goal_id) REFERENCES Goals(goal_id),
-    FOREIGN KEY(SubGoalId) REFERENCES SubGoals(SubGoalId)
+    FOREIGN KEY(sub_goal_id) REFERENCES SubGoals(sub_goal_id)
 );
 
 CREATE TABLE IF NOT EXISTS TrackedGoals (
-    TrackedGoalId INTEGER PRIMARY KEY,
+    tracked_goal_id INTEGER PRIMARY KEY,
     goal_id INTEGER,
     user_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
