@@ -8,16 +8,16 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 
 	const { goal_id }: any = await request.json();
 
-	const goal = await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE goal_id = ? AND user_id = ?`).bind(goal_id, user.user_id).first();
-	if (!goal) {
-		return new Response(JSON.stringify({ error: 'Goal not found' }), {
-			status: 404,
+	const { success } = await env.DB.prepare(`INSERT INTO TrackedGoals (goal_id, user_id() VALUES (?, ?)`).bind(goal_id, user.user_id).run();
+	if (success) {
+		return new Response(JSON.stringify({ message: 'User added successfully' }), {
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	} else {
+		return new Response(JSON.stringify({ error: 'Failed to insert user' }), {
+			status: 500,
 			headers: { 'Content-Type': 'application/json' },
 		});
 	}
-
-	return new Response(JSON.stringify({ goal }), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
-	});
 };
