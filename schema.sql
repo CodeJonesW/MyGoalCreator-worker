@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS Users (
 );
 
 CREATE TABLE IF NOT EXISTS Goals (
-    GoalId INTEGER PRIMARY KEY,
+    goal_id INTEGER PRIMARY KEY,
     user_id INTEGER,
     goal_name TEXT,
     plan TEXT,
@@ -23,20 +23,20 @@ CREATE TABLE IF NOT EXISTS Goals (
 );
 CREATE TABLE IF NOT EXISTS SubGoals (
     SubGoalId INTEGER PRIMARY KEY,
-    GoalId INTEGER,
+    goal_id INTEGER,
     sub_goal_name TEXT,
     plan TEXT,
     line_number INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    FOREIGN KEY(GoalId) REFERENCES Goals(GoalId),
+    FOREIGN KEY(goal_id) REFERENCES Goals(goal_id),
     FOREIGN KEY(SubGoalId) REFERENCES SubGoals(SubGoalId)
 );
 
 CREATE TABLE IF NOT EXISTS TrackedGoals (
     TrackedGoalId INTEGER PRIMARY KEY,
-    GoalId INTEGER,
+    goal_id INTEGER,
     user_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    FOREIGN KEY(GoalId) REFERENCES Goals(GoalId),
+    FOREIGN KEY(goal_id) REFERENCES Goals(goal_id),
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
 );

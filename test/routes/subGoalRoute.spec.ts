@@ -50,7 +50,7 @@ describe('createSubGoalRoute', () => {
 
 		const request = new Request('http://localhost:8787', {
 			method: 'POST',
-			body: JSON.stringify({ goalId: 1, sub_goal_name: 'subgoal', line_number: 1 }),
+			body: JSON.stringify({ goal_id: 1, sub_goal_name: 'subgoal', line_number: 1 }),
 		});
 		const response = await createSubGoalRoute(request, mockEnv);
 
@@ -71,7 +71,7 @@ describe('createSubGoalRoute', () => {
 		// mockEnv.DB.run.mockResolvedValue({ success: true, lastInsertId: 123 });
 		// const request = new Request('http://localhost:8787', {
 		// 	method: 'POST',
-		// 	body: JSON.stringify({ goalId: 1, sub_goal_name: sub_goal_name, line_number: 1 }),
+		// 	body: JSON.stringify({ goal_id: 1, sub_goal_name: sub_goal_name, line_number: 1 }),
 		// });
 		// const response = await createSubGoalRoute(request, mockEnv);
 		// const json = await response.json();
@@ -95,7 +95,7 @@ describe('createSubGoalRoute', () => {
 		// mockEnv.DB.run.mockRejectedValue(new Error('Insertion failed'));
 		// const request = new Request('http://localhost:8787', {
 		// 	method: 'POST',
-		// 	body: JSON.stringify({ goalId: 1, sub_goal_name: sub_goal_name, line_number: 1 }),
+		// 	body: JSON.stringify({ goal_id: 1, sub_goal_name: sub_goal_name, line_number: 1 }),
 		// });
 		// const response = await createSubGoalRoute(request, mockEnv);
 		// const json = await response.json();

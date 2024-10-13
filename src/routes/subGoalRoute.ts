@@ -9,11 +9,11 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 	if (authResponse instanceof Response) return authResponse;
 
 	// Extract the required fields from the request body
-	const { goalId, sub_goal_name, line_number }: any = await request.json();
-	console.log('GoalId', goalId, 'SubGoalName', sub_goal_name, 'LineNumber', line_number);
+	const { goal_id, sub_goal_name, line_number }: any = await request.json();
+	console.log('goal_id', goal_id, 'SubGoalName', sub_goal_name, 'LineNumber', line_number);
 
 	// Check if the goal exists
-	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE GoalId = ?`).bind(goalId).first();
+	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 	if (!goal) {
 		return new Response(JSON.stringify({ error: 'Goal not found' }), {
 			status: 404,
@@ -22,7 +22,9 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 	}
 	console.log('Goal found', goal);
 
-	const subGoal = await env.DB.prepare(`SELECT * FROM SubGoals WHERE GoalId = ? AND sub_goal_name = ?`).bind(goalId, sub_goal_name).first();
+	const subGoal = await env.DB.prepare(`SELECT * FROM SubGoals WHERE goal_id = ? AND sub_goal_name = ?`)
+		.bind(goal_id, sub_goal_name)
+		.first();
 	if (subGoal) {
 		return new Response(JSON.stringify({ message: 'success', subGoal }), {
 			status: 200,
@@ -55,9 +57,9 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 		model: 'gpt-4o-mini',
 	});
 	try {
-		const result = await env.DB.prepare(`INSERT INTO SubGoals (GoalId, sub_goal_name, plan, line_number) VALUES (?, ?, ?, ?)`)
+		const result = await env.DB.prepare(`INSERT INTO SubGoals (goal_id, sub_goal_name, plan, line_number) VALUES (?, ?, ?, ?)`)
 			// @ts-ignore
-			.bind(goalId, sub_goal_name, completion.choices[0].message.content, line_number)
+			.bind(goal_id, sub_goal_name, completion.choices[0].message.content, line_number)
 			.run();
 		console.log('SubGoal created successfully', result);
 

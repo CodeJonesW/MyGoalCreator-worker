@@ -24,7 +24,7 @@ describe('Goal By Id Route', () => {
 	it('should return 401 if the authorization is invalid', async () => {
 		const request = new Request('http://localhost/api/goal', {
 			method: 'POST',
-			body: JSON.stringify({ goalId: 1 }),
+			body: JSON.stringify({ goal_id: 1 }),
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
@@ -42,7 +42,7 @@ describe('Goal By Id Route', () => {
 	it('should return 404 if the goal is not found', async () => {
 		const request = new Request('http://localhost/api/goal', {
 			method: 'POST',
-			body: JSON.stringify({ goalId: 123 }), // Goal that doesn't exist
+			body: JSON.stringify({ goal_id: 123 }), // Goal that doesn't exist
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
@@ -64,7 +64,7 @@ describe('Goal By Id Route', () => {
 	it('should return 200 and the goal if found', async () => {
 		const request = new Request('http://localhost/api/goal', {
 			method: 'POST',
-			body: JSON.stringify({ goalId: 1 }), // Existing goal
+			body: JSON.stringify({ goal_id: 1 }), // Existing goal
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');

@@ -59,7 +59,7 @@ describe('Profile Route', () => {
 		});
 		// @ts-ignore
 		mockEnv.DB.all.mockResolvedValue({
-			results: [{ goal_name: 'Learn React', GoalId: 1 }],
+			results: [{ goal_name: 'Learn React', goal_id: 1 }],
 		});
 
 		const response = await profileRoute(request, mockEnv);
