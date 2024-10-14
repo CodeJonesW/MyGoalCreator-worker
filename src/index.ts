@@ -37,8 +37,7 @@ export default {
 		if (pathname === '/api/subgoal') {
 			return await createSubGoalRoute(request, env);
 		}
-		if (pathname === '/api/subGoalV2') {
-			console.log('subGoalV2 path hit');
+		if (pathname === '/api/subgoalv2') {
 			return await createSubGoalRouteV2(request, env);
 		}
 		if (pathname === '/api/trackGoal') {

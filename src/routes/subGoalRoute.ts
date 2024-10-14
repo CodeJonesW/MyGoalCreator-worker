@@ -203,15 +203,13 @@ export const createSubGoalRouteV2 = async (request: Request, env: Env): Promise<
 				}
 
 				controller.enqueue(encoder.encode(`event: done\n\n`));
-
+				const updateResult = await env.DB.prepare(`UPDATE SubGoals SET plan = ? WHERE sub_goal_id = ?`)
+					// @ts-ignore
+					.bind(rawTotalResponse, result.meta.last_row_id)
+					.run();
 				controller.close();
 			},
 		});
-		console.log('stream created');
-		const updateResult = await env.DB.prepare(`UPDATE SubGoals SET plan = ? WHERE sub_goal_id = ?`)
-			// @ts-ignore
-			.bind(rawTotalResponse, result.meta.last_row_id)
-			.run();
 
 		return new Response(stream, {
 			headers: {
