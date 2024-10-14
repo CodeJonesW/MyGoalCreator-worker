@@ -32,7 +32,7 @@ export const loginRoute = async (request: Request, env: Env): Promise<Response> 
 
 	// Dynamically import jsonwebtoken to avoid circular dependencies
 	const jwt = await import('jsonwebtoken');
-	const token = jwt.sign({ email: user.email, user_id: user.user_id }, env.JWT_SECRET, { expiresIn: '1h' });
+	const token = jwt.sign({ email: user.email, user_id: user.user_id }, env.JWT_SECRET, { expiresIn: '7d' });
 
 	return new Response(JSON.stringify({ message: 'Login successful', access_token: token }), {
 		status: 200,
