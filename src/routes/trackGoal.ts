@@ -8,6 +8,18 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 
 	const { goal_id }: any = await request.json();
 
+	if (!goal_id) {
+		return new Response(JSON.stringify({ error: 'Missing goal_id' }), {
+			status: 400,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+
+	const trackedGoal = await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE user_id = ?`).bind(user.user_id).first();
+	if (trackedGoal) {
+		await env.DB.prepare(`DELETE FROM TrackedGoals WHERE user_id = ?`).bind(user.user_id).run();
+	}
+
 	const { success } = await env.DB.prepare(`INSERT INTO TrackedGoals (goal_id, user_id() VALUES (?, ?)`).bind(goal_id, user.user_id).run();
 	if (success) {
 		return new Response(JSON.stringify({ message: 'User added successfully' }), {
