@@ -57,7 +57,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				- Enclose code blocks with triple backticks (\`\`\`).
 				- Avoid empty lines in bullet points or lists.
 				- Use a divider (---) between sections.
-				- Use 4 spaces prior to nested bullet points.
+				- Do not use nested bullet points.
 			  
 				Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
 			},
@@ -163,7 +163,7 @@ export const createSubGoalRouteV2 = async (request: Request, env: Env): Promise<
 				- Enclose code blocks with triple backticks (\`\`\`).
 				- Avoid empty lines in bullet points or lists.
 				- Use a divider (---) between sections.
-				- Use 4 spaces prior to nested bullet points.
+				- Do not use nested bullet points.
 			  
 				Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
 			},
