@@ -3,7 +3,6 @@ import OpenAI from 'openai';
 import { verifyToken } from '../utils/auth';
 
 export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
-	console.log('Create SubGoal Route');
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
@@ -37,8 +36,8 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				role: 'system',
 				content: `You are an expert in the field of ${goal_name} and are helping the user achieve their goal.`,
 			},
-			{ role: 'user', content: `I need to ${sub_goal_name}.` },
-			{ role: 'system', content: `You are aware this goal is in the context of this overall plan: ${plan}` },
+			{ role: 'system', content: `You are aware the user is trying to achieve ${goal_name} via this plan: ${plan}` },
+			{ role: 'user', content: `My goal is ${sub_goal_name}.` },
 			{ role: 'system', content: `Explain the steps to achieve this goal and provide resources.` },
 			{
 				role: 'system',
@@ -61,7 +60,6 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 			// @ts-ignore
 			.bind(goal_id, sub_goal_name, completion.choices[0].message.content, line_number)
 			.run();
-		console.log('SubGoal created successfully', result);
 
 		if (result.success) {
 			return new Response(

@@ -14,7 +14,6 @@ export const registerRoute = async (request: Request, env: Env): Promise<Respons
 	}
 
 	const user = await checkIfUserExistsByEmail(email, env);
-	console.log(user);
 	if (user) {
 		return new Response(JSON.stringify({ error: 'User already exists' }), {
 			status: 400,
