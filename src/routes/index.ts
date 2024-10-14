@@ -4,4 +4,4 @@ export { loginRoute } from './loginRoute';
 export { profileRoute } from './profileRoute';
 export { registerRoute } from './registerRoute';
 export { trackGoalRoute } from './trackGoalRoute';
-export { createSubGoalRoute } from './subGoalRoute';
+export { createSubGoalRoute, createSubGoalRouteV2 } from './subGoalRoute';
