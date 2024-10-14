@@ -10,6 +10,14 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 	// Extract the required fields from the request body
 	const { goal_id, sub_goal_name, line_number }: any = await request.json();
 
+	if (!goal_id || !sub_goal_name || !line_number) {
+		console.log('Missing required fields', { goal_id, sub_goal_name, line_number });
+		return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+			status: 400,
+			headers: { 'Content-Type': 'application/json' },
+		});
+	}
+
 	// Check if the goal exists
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 	if (!goal) {
@@ -44,6 +52,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 				content: `Please format your response in valid Markdown, adhering to the following:
 				- Use headings with "#" for levels (e.g., "#", "##").
 				- Use "- " for bullet points
+				- Do not use bullets with headings.
 				- Line breaks should use two trailing spaces.
 				- Enclose code blocks with triple backticks (\`\`\`).
 				- Avoid empty lines in bullet points or lists.
