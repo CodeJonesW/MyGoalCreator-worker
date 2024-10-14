@@ -9,3 +9,8 @@ export const checkIfUserHasAnalyzeRequests = async (user_id: number, env: Env): 
 	if (!user) return false;
 	return (user.analyze_requests as number) > 0;
 };
+
+export const checkGoalExists = async (goal_id: number, env: Env): Promise<boolean> => {
+	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
+	return !!goal;
+};
