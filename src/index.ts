@@ -1,10 +1,5 @@
 import { Env } from './types';
-import { loginRoute } from './routes/loginRoute';
-import { profileRoute } from './routes/profileRoute';
-import { analyzeRoute } from './routes/analyzeRoute';
-import { goalByIdRoute } from './routes/goalByIdRoute';
-import { registerRoute } from './routes/registerRoute';
-import { createSubGoalRoute } from './routes/subGoalRoute';
+import { registerRoute, trackGoalRoute, createSubGoalRoute, goalByIdRoute, analyzeRoute, profileRoute, loginRoute } from './routes';
 
 export default {
 	async fetch(request, env): Promise<Response> {
@@ -32,6 +27,9 @@ export default {
 
 		if (pathname === '/api/subgoal') {
 			return await createSubGoalRoute(request, env);
+		}
+		if (pathname === '/api/trackGoal') {
+			return await trackGoalRoute(request, env);
 		}
 
 		return new Response('Not found', { status: 404 });
