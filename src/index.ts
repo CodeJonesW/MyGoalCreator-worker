@@ -1,5 +1,14 @@
 import { Env } from './types';
-import { registerRoute, trackGoalRoute, createSubGoalRoute, goalByIdRoute, analyzeRoute, profileRoute, loginRoute } from './routes';
+import {
+	registerRoute,
+	trackGoalRoute,
+	createSubGoalRoute,
+	goalByIdRoute,
+	analyzeRoute,
+	profileRoute,
+	loginRoute,
+	createSubGoalRouteV2,
+} from './routes';
 
 export default {
 	async fetch(request, env): Promise<Response> {
@@ -27,6 +36,9 @@ export default {
 
 		if (pathname === '/api/subgoal') {
 			return await createSubGoalRoute(request, env);
+		}
+		if (pathname === '/api/subgoalv2') {
+			return await createSubGoalRouteV2(request, env);
 		}
 		if (pathname === '/api/trackGoal') {
 			return await trackGoalRoute(request, env);
