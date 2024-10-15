@@ -1,5 +1,5 @@
-import { Env } from '../types';
-import { verifyToken } from '../utils/auth';
+import { Env } from '../../types';
+import { verifyToken } from '../../utils/auth';
 
 export const goalByIdRoute = async (request: Request, env: Env): Promise<Response> => {
 	const authResponse = await verifyToken(request, env);

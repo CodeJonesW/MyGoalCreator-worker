@@ -1,6 +1,6 @@
-import { Env } from '../types';
-import { verifyToken } from '../utils/auth';
-import { checkGoalExists } from '../utils/db_queries';
+import { Env } from '../../types';
+import { verifyToken } from '../../utils/auth';
+import { checkGoalExists } from '../../utils/db_queries';
 
 export const trackGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	const authResponse = await verifyToken(request, env);
