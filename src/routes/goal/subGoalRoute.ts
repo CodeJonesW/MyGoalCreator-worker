@@ -1,6 +1,6 @@
-import { Env } from '../types';
+import { Env } from '../../types';
 import OpenAI from 'openai';
-import { verifyToken } from '../utils/auth';
+import { verifyToken } from '../../utils/auth';
 
 export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
@@ -130,6 +130,7 @@ export const createSubGoalRouteV2 = async (request: Request, env: Env): Promise<
 	const subGoal = await env.DB.prepare(`SELECT * FROM SubGoals WHERE goal_id = ? AND sub_goal_name = ?`)
 		.bind(goal_id, sub_goal_name)
 		.first();
+
 	if (subGoal) {
 		return new Response(JSON.stringify({ message: 'success', subGoal }), {
 			status: 200,

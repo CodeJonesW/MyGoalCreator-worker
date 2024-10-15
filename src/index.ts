@@ -8,11 +8,13 @@ import {
 	profileRoute,
 	loginRoute,
 	createSubGoalRouteV2,
+	deleteGoalByIdRoute,
 } from './routes';
 
 export default {
 	async fetch(request, env): Promise<Response> {
 		const { pathname } = new URL(request.url);
+		console.log(pathname);
 
 		if (pathname === '/api/register') {
 			return await registerRoute(request, env);
@@ -34,12 +36,18 @@ export default {
 			return await goalByIdRoute(request, env);
 		}
 
+		if (pathname === '/api/deletegoal') {
+			return await deleteGoalByIdRoute(request, env);
+		}
+
 		if (pathname === '/api/subgoal') {
 			return await createSubGoalRoute(request, env);
 		}
+
 		if (pathname === '/api/subgoalv2') {
 			return await createSubGoalRouteV2(request, env);
 		}
+
 		if (pathname === '/api/trackGoal') {
 			return await trackGoalRoute(request, env);
 		}
