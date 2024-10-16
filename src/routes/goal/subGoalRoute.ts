@@ -142,8 +142,6 @@ export const createSubGoalRouteV2 = async (request: Request, env: Env): Promise<
 		.bind(goal_id, sub_goal_name, line_number)
 		.run();
 
-	console.log('result from subgoal insert', result);
-
 	const completion = await openai.chat.completions.create({
 		stream: true,
 		messages: [
@@ -193,7 +191,7 @@ export const createSubGoalRouteV2 = async (request: Request, env: Env): Promise<
 							if (index === lines.length - 1 && !line.endsWith('\n')) {
 								buffer = line;
 							} else {
-								controller.enqueue(encoder.encode(line + '\n'));
+								controller.enqueue(encoder.encode(line));
 							}
 						});
 					}

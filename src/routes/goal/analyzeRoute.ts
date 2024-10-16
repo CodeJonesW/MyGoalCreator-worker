@@ -81,7 +81,7 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 							if (index === lines.length - 1 && !line.endsWith('\n')) {
 								buffer = line;
 							} else {
-								controller.enqueue(encoder.encode(line + '\n'));
+								controller.enqueue(encoder.encode(line));
 							}
 						});
 					}
