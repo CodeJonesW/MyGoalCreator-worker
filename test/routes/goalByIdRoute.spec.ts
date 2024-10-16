@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { goalByIdRoute } from '../../src/routes/goalByIdRoute'; // Adjust path as needed
+import { goalByIdRoute } from '../../src/routes/goal/goalByIdRoute'; // Adjust path as needed
 import { Env } from '../../src/types';
 
 vi.mock('../../src/utils/auth', () => ({

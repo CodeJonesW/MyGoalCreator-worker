@@ -1,13 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { analyzeRoute } from '../../src/routes/analyzeRoute'; // Adjust path as needed
+import { analyzeRoute } from '../../src/routes/goal/analyzeRoute';
 import { Env } from '../../src/types';
 
-// Mocking the necessary functions
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
 }));
 
-// Mock OpenAI with an async generator for the stream
 vi.mock('openai', async (importOriginal) => {
 	const actual = await importOriginal(); // Get the actual module
 
