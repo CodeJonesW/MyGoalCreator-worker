@@ -47,14 +47,7 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 					role: 'system',
 					content: `Please format your response in valid Markdown, adhering to the following:
 					- Use headings with "#" for levels (e.g., "#", "##").
-					- Use "- " for bullet points
-					- Do not use bullets with headings.
-					- Line breaks should use two trailing spaces.
-					- Enclose code blocks with triple backticks (\`\`\`).
-					- Avoid empty lines in bullet points or lists.
-					- Use a divider (---) between sections.
-					- Do not use nested bullet points.
-				  
+					- Do not use bullet points or numbered lists.
 					Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
 				},
 			],

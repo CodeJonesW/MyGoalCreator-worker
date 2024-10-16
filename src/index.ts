@@ -40,12 +40,8 @@ export default {
 			return await deleteGoalByIdRoute(request, env);
 		}
 
-		if (pathname === '/api/subgoal') {
-			return await createSubGoalRoute(request, env);
-		}
-
 		if (pathname === '/api/subgoalv2') {
-			return await createSubGoalRouteV2(request, env);
+			return await createSubGoalRoute(request, env);
 		}
 
 		if (pathname === '/api/trackGoal') {
