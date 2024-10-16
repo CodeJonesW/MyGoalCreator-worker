@@ -32,14 +32,15 @@ export default {
 		}
 
 		if (pathname.startsWith('/api/goal')) {
-			return await goalByIdRoute(request, env);
+			if (request.method === 'GET') {
+				return await goalByIdRoute(request, env);
+			}
+			if (request.method === 'DELETE') {
+				return await deleteGoalByIdRoute(request, env);
+			}
 		}
 
-		if (pathname === '/api/deletegoal') {
-			return await deleteGoalByIdRoute(request, env);
-		}
-
-		if (pathname === '/api/subgoalv2') {
+		if (pathname === '/api/subgoal') {
 			return await createSubGoalRoute(request, env);
 		}
 
