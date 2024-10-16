@@ -1,5 +1,5 @@
 import { Env } from '../types';
-import { checkIfUserExistsByEmail } from '../utils/db_queries';
+import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '../utils/db_queries';
 
 export const loginRoute = async (request: Request, env: Env): Promise<Response> => {
 	const email = request.headers.get('x-email');
@@ -20,7 +20,6 @@ export const loginRoute = async (request: Request, env: Env): Promise<Response> 
 		});
 	}
 
-	// Dynamically import bcrypt to avoid circular dependencies
 	const bcrypt = await import('bcryptjs');
 	const match = await bcrypt.compare(password, user.user_password as string);
 	if (!match) {
@@ -30,7 +29,8 @@ export const loginRoute = async (request: Request, env: Env): Promise<Response> 
 		});
 	}
 
-	// Dynamically import jsonwebtoken to avoid circular dependencies
+	await insertAuthEntry(env, user.user_id);
+
 	const jwt = await import('jsonwebtoken');
 	const token = jwt.sign({ email: user.email, user_id: user.user_id }, env.JWT_SECRET, { expiresIn: '7d' });
 

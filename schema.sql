@@ -40,3 +40,10 @@ CREATE TABLE IF NOT EXISTS TrackedGoals (
     FOREIGN KEY(goal_id) REFERENCES Goals(goal_id),
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
 );
+
+CREATE TABLE IF NOT EXISTS Auth (
+    auth_id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    login_attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES Users(user_id)
+);
