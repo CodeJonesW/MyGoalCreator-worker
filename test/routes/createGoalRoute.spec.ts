@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { analyzeRoute } from '../../src/routes/goal/analyzeRoute';
+import { createGoalRoute } from '../../src/routes/goal/createGoalRoute';
 import { Env } from '../../src/types';
 
 vi.mock('../../src/utils/auth', () => ({
@@ -61,7 +61,7 @@ describe('Analyze Route', () => {
 		// @ts-ignore
 		checkIfUserHasAnalyzeRequests.mockResolvedValue(false); // Simulate no analyze requests left
 
-		const response = await analyzeRoute(request, mockEnv);
+		const response = await createGoalRoute(request, mockEnv);
 		const result = await response.json();
 
 		expect(response.status).toBe(400);
@@ -89,7 +89,7 @@ describe('Analyze Route', () => {
 			analyze_requests: 5, // Initial value of analyze requests
 		});
 
-		const response = await analyzeRoute(request, mockEnv);
+		const response = await createGoalRoute(request, mockEnv);
 		const text = await response.text();
 
 		expect(response.status).toBe(200);

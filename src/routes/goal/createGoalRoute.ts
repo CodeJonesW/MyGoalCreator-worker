@@ -3,7 +3,7 @@ import OpenAI from 'openai';
 import { verifyToken } from '../../utils/auth';
 import { checkIfUserHasAnalyzeRequests } from '../../utils/db_queries';
 
-export const analyzeRoute = async (request: Request, env: Env): Promise<Response> => {
+export const createGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	try {
 		const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 		const authResponse = await verifyToken(request, env);

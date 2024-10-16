@@ -4,10 +4,9 @@ import {
 	trackGoalRoute,
 	createSubGoalRoute,
 	goalByIdRoute,
-	analyzeRoute,
+	createGoalRoute,
 	profileRoute,
 	loginRoute,
-	createSubGoalRouteV2,
 	deleteGoalByIdRoute,
 } from './routes';
 
@@ -29,7 +28,7 @@ export default {
 		}
 
 		if (pathname === '/api/analyze') {
-			return await analyzeRoute(request, env);
+			return await createGoalRoute(request, env);
 		}
 
 		if (pathname.startsWith('/api/goal')) {
