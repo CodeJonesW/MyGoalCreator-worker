@@ -1,4 +1,4 @@
-import { createSubGoalRoute } from '../../src/routes/subGoalRoute';
+import { createSubGoalRoute } from '../../src/routes/goal/subGoalRoute';
 import { describe, it, expect, vi } from 'vitest';
 import { verifyToken } from '../../src/utils/auth';
 import { Env } from '../../src/types';

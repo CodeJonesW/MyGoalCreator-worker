@@ -1,4 +1,4 @@
-export { analyzeRoute } from './analyzeRoute';
+export { analyzeRoute } from './goal/analyzeRoute';
 export { goalByIdRoute } from './goal/goalByIdRoute';
 export { loginRoute } from './loginRoute';
 export { profileRoute } from './profileRoute';

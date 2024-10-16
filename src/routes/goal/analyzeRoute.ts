@@ -1,7 +1,7 @@
-import { Env } from '../types';
+import { Env } from '../../types';
 import OpenAI from 'openai';
-import { verifyToken } from '../utils/auth';
-import { checkIfUserHasAnalyzeRequests } from '../utils/db_queries';
+import { verifyToken } from '../../utils/auth';
+import { checkIfUserHasAnalyzeRequests } from '../../utils/db_queries';
 
 export const analyzeRoute = async (request: Request, env: Env): Promise<Response> => {
 	try {
@@ -81,7 +81,7 @@ export const analyzeRoute = async (request: Request, env: Env): Promise<Response
 							if (index === lines.length - 1 && !line.endsWith('\n')) {
 								buffer = line;
 							} else {
-								controller.enqueue(encoder.encode(line + '\n'));
+								controller.enqueue(encoder.encode(line));
 							}
 						});
 					}
