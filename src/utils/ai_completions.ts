@@ -84,7 +84,7 @@ export const createSubGoal = async (env: Env, goal: any, sub_goal_name: string, 
 
 	const { goal_name, plan, goal_id } = goal;
 
-	await env.DB.prepare(`INSERT INTO SubGoals (goal_id, sub_goal_name, line_number) VALUES (?, ?, ?)`)
+	const result = await env.DB.prepare(`INSERT INTO SubGoals (goal_id, sub_goal_name, line_number) VALUES (?, ?, ?)`)
 		.bind(goal_id, sub_goal_name, line_number)
 		.run();
 

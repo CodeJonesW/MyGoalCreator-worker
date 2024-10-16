@@ -5,7 +5,8 @@ export const goalByIdRoute = async (request: Request, env: Env): Promise<Respons
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
 
-	const { goal_id }: any = await request.json();
+	const url = new URL(request.url);
+	const goal_id = url.searchParams.get('goal_id');
 
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 	if (!goal) {
