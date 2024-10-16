@@ -3,6 +3,8 @@ import { Env } from '../types';
 
 const markdownPrompt = `Please format your response in valid Markdown, adhering to the following:
 				- Use headings with "#" for levels (e.g., "#", "##", "###").
+				- Mark the end of lists with a new line.
+				- Mark headings and subheadings with a new line.
 				Ensure the Markdown is clean and easy to copy into any Markdown editor.`;
 
 export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline: any, user: any) => {
