@@ -1,7 +1,7 @@
-import { Env } from '../types';
+import { Env } from '../../types';
 import OpenAI from 'openai';
-import { verifyToken } from '../utils/auth';
-import { checkIfUserHasAnalyzeRequests } from '../utils/db_queries';
+import { verifyToken } from '../../utils/auth';
+import { checkIfUserHasAnalyzeRequests } from '../../utils/db_queries';
 
 export const analyzeRoute = async (request: Request, env: Env): Promise<Response> => {
 	try {
