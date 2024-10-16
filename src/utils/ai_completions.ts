@@ -1,6 +1,10 @@
 import OpenAI from 'openai';
 import { Env } from '../types';
 
+const markdownPrompt = `Please format your response in valid Markdown, adhering to the following:
+				- Use headings with "#" for levels (e.g., "#", "##", "###").
+				Ensure the Markdown is clean and easy to copy into any Markdown editor.`;
+
 export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline: any, user: any) => {
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 	const completion = await openai.chat.completions.create({
@@ -19,10 +23,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 			{ role: 'system', content: `Expand or contract the plan relative to the length of the goal's timeline.` },
 			{
 				role: 'system',
-				content: `Please format your response in valid Markdown, adhering to the following:
-				- Use headings with "#" for levels (e.g., "#", "##").
-				- Do not use bullet points or numbered lists.
-				Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
+				content: markdownPrompt,
 			},
 		],
 		model: 'gpt-4o-mini',
@@ -100,10 +101,7 @@ export const createSubGoal = async (env: Env, goal: any, sub_goal_name: string, 
 			{ role: 'system', content: `Explain the steps to achieve this goal and provide resources.` },
 			{
 				role: 'system',
-				content: `Please format your response in valid Markdown, adhering to the following:
-				- Use headings with "#" for levels (e.g., "#", "##").
-				- Do not use bullet points or numbered lists.
-				Ensure the Markdown is clean and easy to copy into any Markdown editor.`,
+				content: markdownPrompt,
 			},
 		],
 		model: 'gpt-4o-mini',
