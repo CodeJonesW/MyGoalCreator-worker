@@ -29,8 +29,7 @@ CREATE TABLE IF NOT EXISTS SubGoals (
     plan TEXT,
     line_number INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    FOREIGN KEY(goal_id) REFERENCES Goals(goal_id),
-    FOREIGN KEY(sub_goal_id) REFERENCES SubGoals(sub_goal_id)
+    FOREIGN KEY(goal_id) REFERENCES Goals(goal_id)
 );
 
 CREATE TABLE IF NOT EXISTS TrackedGoals (
