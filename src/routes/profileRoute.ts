@@ -23,13 +23,14 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 
 	const trackedGoal = await env.DB.prepare(`SELECT goal_id FROM TrackedGoals WHERE user_id = ?`).bind(user.user_id).first();
 	const is_first_login = await checkUserFirstLogin(env, user.user_id);
+	const showUiHelp = is_first_login && goalsQuery.results.length === 0;
 
 	const responseData = {
 		user: userFromDb,
 		goals: goalsQuery.results,
 		recentGoal: recentGoal ? recentGoal : null,
 		trackedGoal: trackedGoal ? trackedGoal : null,
-		is_first_login,
+		is_first_login: showUiHelp,
 	};
 
 	return new Response(JSON.stringify(responseData), {
