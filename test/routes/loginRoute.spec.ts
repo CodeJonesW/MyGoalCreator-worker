@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { loginRoute } from '../../src/routes/loginRoute'; // Adjust the path as needed
+import { loginRoute } from '../../src/routes/account/loginRoute'; // Adjust the path as needed
 import { Env } from '../../src/types';
 
 // Mock the bcryptjs and jsonwebtoken modules globally

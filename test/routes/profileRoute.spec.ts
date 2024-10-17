@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { profileRoute } from '../../src/routes/profileRoute';
+import { profileRoute } from '../../src/routes/account/profileRoute';
 import { Env } from '../../src/types';
 
 vi.mock('../../src/utils/auth', () => ({

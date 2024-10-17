@@ -2,6 +2,7 @@ import { Env } from '../../types';
 import { verifyToken } from '../../utils/auth';
 import { checkIfUserHasAnalyzeRequests } from '../../utils/db_queries';
 import { createGoal } from '../../utils/ai_completions';
+import { errorResponse } from '../../utils/response_utils';
 
 export const createGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	try {
@@ -11,19 +12,13 @@ export const createGoalRoute = async (request: Request, env: Env): Promise<Respo
 		const user = authResponse.user;
 		const hasAnalyzeRequests = await checkIfUserHasAnalyzeRequests(user.user_id, env);
 		if (!hasAnalyzeRequests) {
-			return new Response(JSON.stringify({ error: 'No analyze requests left' }), {
-				status: 400,
-				headers: { 'Content-Type': 'application/json' },
-			});
+			return errorResponse('No analyze requests left', 400);
 		}
 
 		const { goal, prompt: areaOfFocus, timeline }: any = await request.json();
 
 		if (!goal) {
-			return new Response(JSON.stringify({ error: 'URL is required' }), {
-				status: 400,
-				headers: { 'Content-Type': 'application/json' },
-			});
+			return errorResponse('Goal is required', 400);
 		}
 
 		const stream = await createGoal(env, goal, areaOfFocus, timeline, user);
@@ -37,10 +32,6 @@ export const createGoalRoute = async (request: Request, env: Env): Promise<Respo
 		});
 	} catch (error) {
 		console.log(error);
-		// @ts-ignore
-		return new Response(JSON.stringify({ error: 'Internal server error', details: error.message }), {
-			status: 500,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Internal server error', 500);
 	}
 };

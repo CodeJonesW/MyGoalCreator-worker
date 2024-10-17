@@ -1,8 +1,9 @@
-import { Env } from '../types';
-import { checkUserFirstLogin, findUserTrackedGoal, findUserRecentGoal, findUserClientData, findUserGoals } from '../utils/db_queries';
+import { Env } from '../../types';
+import { checkUserFirstLogin, findUserTrackedGoal, findUserRecentGoal, findUserClientData, findUserGoals } from '../../utils/db_queries';
+import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (request: Request, env: Env): Promise<Response> => {
-	const { verifyToken } = await import('../utils/auth');
+	const { verifyToken } = await import('../../utils/auth');
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
 
@@ -10,10 +11,7 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 
 	const userFromDb = await findUserClientData(env, user.user_id);
 	if (!userFromDb) {
-		return new Response(JSON.stringify({ error: 'User not found' }), {
-			status: 404,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('User not found', 404);
 	}
 
 	const goalsQuery = await findUserGoals(env, user.user_id);

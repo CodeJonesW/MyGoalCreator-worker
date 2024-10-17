@@ -1,6 +1,7 @@
 import { Env } from '../../types';
 import { verifyToken } from '../../utils/auth';
 import { checkGoalExists } from '../../utils/db_queries';
+import { errorResponse } from '../../utils/response_utils';
 
 export const trackGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	const authResponse = await verifyToken(request, env);
@@ -10,17 +11,11 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 	const { goal_id }: any = await request.json();
 
 	if (!goal_id) {
-		return new Response(JSON.stringify({ error: 'Missing goal_id' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Missing goal_id', 400);
 	}
 	const goalExists = checkGoalExists(goal_id, env);
 	if (!goalExists) {
-		return new Response(JSON.stringify({ error: 'Goal not found' }), {
-			status: 404,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Goal not found', 404);
 	}
 
 	try {
@@ -35,16 +30,10 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 				headers: { 'Content-Type': 'application/json' },
 			});
 		} else {
-			return new Response(JSON.stringify({ error: 'Failed to insert trackedgoal' }), {
-				status: 500,
-				headers: { 'Content-Type': 'application/json' },
-			});
+			return errorResponse('Failed to insert trackedgoal', 500);
 		}
 	} catch (error) {
 		console.log('Error tracking goal', error);
-		return new Response(JSON.stringify({ error: 'Failed to insert trackedgoal' }), {
-			status: 500,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Failed to insert trackedgoal', 500);
 	}
 };

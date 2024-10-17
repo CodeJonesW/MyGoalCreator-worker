@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { registerRoute } from '../../src/routes/registerRoute';
+import { registerRoute } from '../../src/routes/account/registerRoute';
 import { Env } from '../../src/types';
 import bcrypt from 'bcryptjs';
 

@@ -1,32 +1,24 @@
-import { Env } from '../types';
-import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '../utils/db_queries';
+import { Env } from '../../types';
+import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '../../utils/db_queries';
+import { errorResponse } from '../../utils/response_utils';
 
 export const loginRoute = async (request: Request, env: Env): Promise<Response> => {
 	const email = request.headers.get('x-email');
 	const password = request.headers.get('x-password');
 
 	if (!email || !password) {
-		return new Response(JSON.stringify({ error: 'Missing email or password' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Missing email or password', 400);
 	}
 
 	const user = await checkIfUserExistsByEmail(email, env);
 	if (!user) {
-		return new Response(JSON.stringify({ error: 'User not found' }), {
-			status: 404,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('User not found', 404);
 	}
 
 	const bcrypt = await import('bcryptjs');
 	const match = await bcrypt.compare(password, user.user_password as string);
 	if (!match) {
-		return new Response(JSON.stringify({ error: 'Invalid password' }), {
-			status: 401,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Invalid password', 401);
 	}
 
 	await insertAuthEntry(env, user.user_id);

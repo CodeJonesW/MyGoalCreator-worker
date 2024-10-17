@@ -1,24 +1,19 @@
 import bcrypt from 'bcryptjs';
-import { checkIfUserExistsByEmail } from '../utils/db_queries';
-import { Env } from '../types';
+import { checkIfUserExistsByEmail } from '../../utils/db_queries';
+import { Env } from '../../types';
+import { errorResponse } from '../../utils/response_utils';
 
 export const registerRoute = async (request: Request, env: Env): Promise<Response> => {
 	const email = request.headers.get('x-email');
 	const password = request.headers.get('x-password');
 
 	if (!email || !password) {
-		return new Response(JSON.stringify({ error: 'Missing email or password' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Missing email or password', 400);
 	}
 
 	const user = await checkIfUserExistsByEmail(email, env);
 	if (user) {
-		return new Response(JSON.stringify({ error: 'User already exists' }), {
-			status: 400,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('User already exists', 400);
 	}
 
 	const saltRounds = 10;
@@ -33,9 +28,6 @@ export const registerRoute = async (request: Request, env: Env): Promise<Respons
 			headers: { 'Content-Type': 'application/json' },
 		});
 	} else {
-		return new Response(JSON.stringify({ error: 'Failed to insert user' }), {
-			status: 500,
-			headers: { 'Content-Type': 'application/json' },
-		});
+		return errorResponse('Failed to insert user', 500);
 	}
 };
