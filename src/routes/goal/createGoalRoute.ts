@@ -1,12 +1,10 @@
 import { Env } from '../../types';
-import OpenAI from 'openai';
 import { verifyToken } from '../../utils/auth';
 import { checkIfUserHasAnalyzeRequests } from '../../utils/db_queries';
 import { createGoal } from '../../utils/ai_completions';
 
 export const createGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	try {
-		const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 		const authResponse = await verifyToken(request, env);
 		if (authResponse instanceof Response) return authResponse;
 
