@@ -1,8 +1,6 @@
 import { createSubGoalRoute } from '../../src/routes/goal/subGoalRoute';
 import { describe, it, expect, vi } from 'vitest';
-import { verifyToken } from '../../src/utils/auth';
 import { Env } from '../../src/types';
-import { randomString } from '../testUtils.ts/generalTestUtils';
 
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
@@ -21,32 +19,52 @@ vi.mock('openai', () => ({
 	})),
 }));
 
+const mockPreparedStatement = {
+	bind: vi.fn().mockReturnThis(),
+	first: vi.fn(),
+	all: vi.fn(),
+	run: vi.fn(),
+};
+
+const mockEnv: Env = {
+	DB: {
+		prepare: vi.fn(() => mockPreparedStatement),
+		dump: vi.fn(),
+		batch: vi.fn(),
+		exec: vi.fn(),
+	} as any,
+	JWT_SECRET: 'test-secret',
+	OPENAI_API_KEY: 'fake-api-key',
+};
+
 describe('createSubGoalRoute', () => {
-	const mockEnv: Env = {
-		DB: {
-			prepare: vi.fn().mockReturnThis(),
-			bind: vi.fn().mockReturnThis(),
-			run: vi.fn().mockReturnThis(),
-			first: vi.fn().mockReturnThis(),
-		} as any,
-		JWT_SECRET: 'test-secret',
-		OPENAI_API_KEY: 'fake-api-key',
-	};
-
 	it('should return 401 if token verification fails', async () => {
-		(verifyToken as any).mockResolvedValue(new Response(null, { status: 401 }));
+		const { verifyToken } = await import('../../src/utils/auth');
+		const verifyFailedResponse = new Response(JSON.stringify({ error: 'Unauthorized' }), {
+			status: 401,
+			headers: { 'Content-Type': 'application/json' },
+		});
+		// @ts-ignore
 
-		const request = new Request('http://localhost:8787', { method: 'POST', body: '{}' });
+		verifyToken.mockResolvedValue(verifyFailedResponse);
+
+		const request = new Request('http://localhost:8787', {
+			method: 'POST',
+			body: '{}',
+		});
 		const response = await createSubGoalRoute(request, mockEnv);
 
 		expect(response.status).toBe(401);
 	});
 
 	it('should return 404 if the goal does not exist', async () => {
-		(verifyToken as any).mockResolvedValue(null);
+		const { verifyToken } = await import('../../src/utils/auth');
+		// @ts-ignore
+		verifyToken.mockResolvedValue({
+			user: { user_id: 1, email: 'test@example.com' },
+		});
 
-		//@ts-ignore
-		mockEnv.DB.first.mockResolvedValue(null);
+		mockPreparedStatement.first.mockResolvedValue(null);
 
 		const request = new Request('http://localhost:8787', {
 			method: 'POST',
