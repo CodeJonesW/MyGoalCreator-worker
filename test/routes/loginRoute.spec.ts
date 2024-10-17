@@ -17,6 +17,7 @@ describe('Login Route', () => {
 			prepare: vi.fn().mockReturnThis(),
 			bind: vi.fn().mockReturnThis(),
 			first: vi.fn(),
+			run: vi.fn(),
 		} as any,
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',

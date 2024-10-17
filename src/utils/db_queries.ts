@@ -20,6 +20,21 @@ export const insertAuthEntry = async (env: Env, user_id: any) => {
 };
 
 export const checkUserFirstLogin = async (env: Env, user_id: any) => {
-	const auths = await env.DB.prepare(`SELECT * FROM Auth WHERE user_id = ?`).bind(user_id).all();
-	return auths.results.length <= 1 ? true : false;
+	return await env.DB.prepare(`SELECT * FROM Auth WHERE user_id = ?`).bind(user_id).all();
+};
+
+export const findUserTrackedGoal = async (env: Env, user_id: any) => {
+	return await env.DB.prepare(`SELECT goal_id FROM TrackedGoals WHERE user_id = ?`).bind(user_id).first();
+};
+
+export const findUserRecentGoal = async (env: Env, user_id: any) => {
+	return await env.DB.prepare(`SELECT goal_id, plan FROM Goals WHERE user_id = ? ORDER BY goal_id DESC LIMIT 1`).bind(user_id).first();
+};
+
+export const findUserClientData = async (env: Env, user_id: any) => {
+	return await env.DB.prepare(`SELECT email, analyze_requests FROM Users WHERE user_id = ?`).bind(user_id).first();
+};
+
+export const findUserGoals = async (env: Env, user_id: any) => {
+	return await env.DB.prepare(`SELECT goal_name, goal_id FROM Goals WHERE user_id = ?`).bind(user_id).all();
 };

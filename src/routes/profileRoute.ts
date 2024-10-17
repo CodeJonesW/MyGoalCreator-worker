@@ -1,5 +1,5 @@
 import { Env } from '../types';
-import { checkUserFirstLogin } from '../utils/db_queries';
+import { checkUserFirstLogin, findUserTrackedGoal, findUserRecentGoal, findUserClientData, findUserGoals } from '../utils/db_queries';
 
 export const profileRoute = async (request: Request, env: Env): Promise<Response> => {
 	const { verifyToken } = await import('../utils/auth');
@@ -8,7 +8,7 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 
 	const user = authResponse.user;
 
-	const userFromDb = await env.DB.prepare(`SELECT email, analyze_requests FROM Users WHERE user_id = ?`).bind(user.user_id).first();
+	const userFromDb = await findUserClientData(env, user.user_id);
 	if (!userFromDb) {
 		return new Response(JSON.stringify({ error: 'User not found' }), {
 			status: 404,
@@ -16,13 +16,11 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 		});
 	}
 
-	const goalsQuery = await env.DB.prepare(`SELECT goal_name, goal_id FROM Goals WHERE user_id = ?`).bind(user.user_id).all();
-	const recentGoal = await env.DB.prepare(`SELECT goal_id, plan FROM Goals WHERE user_id = ? ORDER BY goal_id DESC LIMIT 1`)
-		.bind(user.user_id)
-		.first();
-
-	const trackedGoal = await env.DB.prepare(`SELECT goal_id FROM TrackedGoals WHERE user_id = ?`).bind(user.user_id).first();
-	const is_first_login = await checkUserFirstLogin(env, user.user_id);
+	const goalsQuery = await findUserGoals(env, user.user_id);
+	const recentGoal = await findUserRecentGoal(env, user.user_id);
+	const trackedGoal = await findUserTrackedGoal(env, user.user_id);
+	const auths = await checkUserFirstLogin(env, user.user_id);
+	const is_first_login = auths.results.length <= 1 ? true : false;
 	const showUiHelp = is_first_login && goalsQuery.results.length === 0;
 
 	const responseData = {
@@ -30,7 +28,7 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 		goals: goalsQuery.results,
 		recentGoal: recentGoal ? recentGoal : null,
 		trackedGoal: trackedGoal ? trackedGoal : null,
-		is_first_login: showUiHelp,
+		showUiHelp: showUiHelp,
 	};
 
 	return new Response(JSON.stringify(responseData), {
