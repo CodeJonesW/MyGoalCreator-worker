@@ -1,14 +1,13 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { profileRoute } from '../../src/routes/profileRoute'; // Adjusted path
-import { Env } from '../../src/types'; // Adjusted path
+import { profileRoute } from '../../src/routes/profileRoute';
+import { Env } from '../../src/types';
 
-// Mocking the dynamically imported verifyToken from auth module
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
 }));
 
 afterEach(() => {
-	vi.clearAllMocks(); // Clear all mock state after each test
+	vi.clearAllMocks();
 });
 
 describe('Profile Route', () => {
@@ -40,7 +39,6 @@ describe('Profile Route', () => {
 		});
 
 		// Mock the database to return no user
-		// @ts-ignore
 		mockPreparedStatement.first.mockResolvedValue(null);
 
 		const response = await profileRoute(request, mockEnv);

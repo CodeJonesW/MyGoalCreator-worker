@@ -3,11 +3,19 @@ import { registerRoute } from '../../src/routes/registerRoute';
 import { Env } from '../../src/types';
 import bcrypt from 'bcryptjs';
 
+const mockPreparedStatement = {
+	bind: vi.fn().mockReturnThis(),
+	first: vi.fn(),
+	all: vi.fn(),
+	run: vi.fn(),
+};
+
 const mockEnv: Env = {
 	DB: {
-		prepare: vi.fn().mockReturnThis(),
-		bind: vi.fn().mockReturnThis(),
-		run: vi.fn(),
+		prepare: vi.fn(() => mockPreparedStatement),
+		dump: vi.fn(),
+		batch: vi.fn(),
+		exec: vi.fn(),
 	} as any,
 	JWT_SECRET: 'test-secret',
 	OPENAI_API_KEY: 'fake-api-key',
@@ -32,8 +40,7 @@ describe('Register Route', () => {
 			}),
 		});
 
-		// @ts-ignore
-		mockEnv.DB.first = vi.fn().mockResolvedValue({ email: 'tester@example.com' });
+		mockPreparedStatement.first.mockResolvedValue({ email: 'tester@example.com' });
 
 		const response: Response = await registerRoute(request, mockEnv);
 		const result: any = await response.json();
@@ -51,10 +58,8 @@ describe('Register Route', () => {
 			}),
 		});
 
-		// @ts-ignore
-		mockEnv.DB.first = vi.fn().mockResolvedValue(null);
-		// @ts-ignore
-		mockEnv.DB.run = vi.fn().mockResolvedValue({ success: true });
+		mockPreparedStatement.first.mockResolvedValue(null);
+		mockPreparedStatement.run.mockResolvedValue({ success: true });
 
 		// @ts-ignore
 		vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashedpassword');
@@ -79,8 +84,7 @@ describe('Register Route', () => {
 		// @ts-ignore
 		vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashedpassword');
 
-		// @ts-ignore
-		mockEnv.DB.run = vi.fn().mockResolvedValue({ success: false });
+		mockPreparedStatement.run.mockResolvedValue({ success: false });
 
 		const response = await registerRoute(request, mockEnv);
 		const result = await response.json();
