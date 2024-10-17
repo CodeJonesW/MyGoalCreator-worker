@@ -14,18 +14,6 @@ export default {
 	async fetch(request, env): Promise<Response> {
 		const { pathname } = new URL(request.url);
 
-		if (pathname === '/api/register') {
-			return await registerRoute(request, env);
-		}
-
-		if (pathname === '/api/login') {
-			return await loginRoute(request, env);
-		}
-
-		if (pathname === '/api/profile') {
-			return await profileRoute(request, env);
-		}
-
 		if (pathname === '/api/analyze') {
 			return await createGoalRoute(request, env);
 		}
@@ -37,6 +25,18 @@ export default {
 			if (request.method === 'DELETE') {
 				return await deleteGoalByIdRoute(request, env);
 			}
+		}
+
+		if (pathname === '/api/login') {
+			return await loginRoute(request, env);
+		}
+
+		if (pathname === '/api/profile') {
+			return await profileRoute(request, env);
+		}
+
+		if (pathname === '/api/register') {
+			return await registerRoute(request, env);
 		}
 
 		if (pathname === '/api/subgoal') {
