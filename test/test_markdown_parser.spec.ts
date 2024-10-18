@@ -1,6 +1,6 @@
 import { describe, it, vi, expect } from 'vitest';
 import { Env } from '../src/types';
-import { parseGoalPlanHeaders, parseGoalPlanHeadersAndContent, parseMarkdownPlan } from '../src/utils/md_parser';
+import { parseGoalPlanHeadersAndContent } from '../src/utils/md_parser';
 import { markdown_plan_1 } from './testUtils.ts/mockData';
 
 const mockPreparedStatement = {
@@ -22,49 +22,16 @@ const mockEnv: Env = {
 };
 
 describe('markdown parser', () => {
-	it('parseGoalPlanHeaders', async () => {
+	it('parseGoalPlanHeadersAndContent', async () => {
 		const goal_id = 1;
-		mockPreparedStatement.first.mockResolvedValue({
+		const goal = {
 			goal_id: goal_id,
-			goal_name: 'test goal',
+			goal_name: 'learn rust',
 			plan: markdown_plan_1,
-			time_line: '1 week',
+			time_line: '1 month',
 			aof: '',
-		});
-		const headingsLevel1AndLevel2 = [
-			'# Week 1: Introduction to Rust',
-			'## Understanding the Basics',
-			'## Basic Programming Concepts',
-			'## Practice',
-			'# Week 2: Intermediate Rust',
-			'## Control Flow and Structs',
-			'## Error Handling',
-			'## Practice',
-			'# Week 3: Advanced Topics in Rust',
-			'## Modules and Packages',
-			'## Concurrency',
-			'## Practice',
-			'# Week 4: Real-world Applications and Projects',
-			'## Building a Complete Project',
-			'## Code Review and Optimization',
-			'## Final Touches',
-			'## Continued Learning',
-		];
-		const data = await parseGoalPlanHeaders(goal_id, mockEnv);
-		expect(data).toEqual(headingsLevel1AndLevel2);
-	});
-
-	it('parseGoalPlanHeadersAndContent - 1', async () => {
-		const goal_id = 1;
-		mockPreparedStatement.first.mockResolvedValue({
-			goal_id: goal_id,
-			goal_name: 'test goal',
-			plan: markdown_plan_1,
-			time_line: '1 week',
-			aof: '',
-		});
-
-		const data = await parseGoalPlanHeadersAndContent(goal_id, mockEnv);
+		};
+		const data = parseGoalPlanHeadersAndContent(goal);
 
 		expect(data).toEqual({
 			'Week 1: Introduction to Rust': [
