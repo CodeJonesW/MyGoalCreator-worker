@@ -1,7 +1,7 @@
 import { describe, it, vi, expect } from 'vitest';
 import { Env } from '../src/types';
-import { parseGoalPlanHeaders, parseGoalPlanHeadersAndContent } from '../src/utils/md_parser';
-import { markdownPlan } from './testUtils.ts/mockData';
+import { parseGoalPlanHeaders, parseGoalPlanHeadersAndContent, parseMarkdownPlan } from '../src/utils/md_parser';
+import { markdown_plan_1 } from './testUtils.ts/mockData';
 
 const mockPreparedStatement = {
 	bind: vi.fn().mockReturnThis(),
@@ -27,7 +27,7 @@ describe('markdown parser', () => {
 		mockPreparedStatement.first.mockResolvedValue({
 			goal_id: goal_id,
 			goal_name: 'test goal',
-			plan: markdownPlan,
+			plan: markdown_plan_1,
 			time_line: '1 week',
 			aof: '',
 		});
@@ -54,12 +54,12 @@ describe('markdown parser', () => {
 		expect(data).toEqual(headingsLevel1AndLevel2);
 	});
 
-	it('parseGoalPlanHeadersAndContent', async () => {
+	it('parseGoalPlanHeadersAndContent - 1', async () => {
 		const goal_id = 1;
 		mockPreparedStatement.first.mockResolvedValue({
 			goal_id: goal_id,
 			goal_name: 'test goal',
-			plan: markdownPlan,
+			plan: markdown_plan_1,
 			time_line: '1 week',
 			aof: '',
 		});

@@ -36,6 +36,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 
 	let buffer = '';
 	let rawTotalResponse = '';
+	let totalFormattedResponse = '';
 	try {
 		const stream = new ReadableStream({
 			async start(controller) {
@@ -54,6 +55,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 							if (index === lines.length - 1 && !line.endsWith('\n')) {
 								buffer = line;
 							} else {
+								totalFormattedResponse += line;
 								controller.enqueue(encoder.encode(line));
 							}
 						});
@@ -61,6 +63,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 				}
 
 				if (buffer) {
+					totalFormattedResponse += buffer;
 					controller.enqueue(encoder.encode(buffer));
 				}
 
@@ -69,7 +72,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 				try {
 					await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?`).bind(user.user_id).run();
 					await env.DB.prepare(`INSERT INTO Goals (user_id, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
-						.bind(user.user_id, goal, rawTotalResponse, timeline, areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '')
+						.bind(user.user_id, goal, totalFormattedResponse, timeline, areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '')
 						.run();
 				} catch (error) {
 					console.log('Error saving goal:', error);

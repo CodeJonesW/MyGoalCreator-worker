@@ -1,4 +1,4 @@
-export const markdownPlan = `
+export const markdown_plan_1 = `
 # Week 1: Introduction to Rust
 
 ## Understanding the Basics
