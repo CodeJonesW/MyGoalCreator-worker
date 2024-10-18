@@ -1,4 +1,4 @@
-import { Env, User } from '../types';
+import { Env, Goal, SubGoal, User } from '../types';
 
 export const checkIfUserExistsByEmail = async (email: string, env: Env): Promise<null | User> => {
 	return await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
@@ -45,4 +45,89 @@ export const getGoalById = async (env: Env, goal_id: any) => {
 
 export const getSubGoalByGoalIdAndSubGoalName = async (env: Env, goal_id: any, sub_goal_name: any) => {
 	return await env.DB.prepare(`SELECT * FROM SubGoals WHERE goal_id = ? AND sub_goal_name = ?`).bind(goal_id, sub_goal_name).first();
+};
+
+export const findUserGoalsWithSubgoals = async (env: Env, user_id: any) => {
+	const query = `
+		SELECT 
+			g.goal_id, 
+			g.goal_name, 
+			sg.sub_goal_id, 
+			sg.sub_goal_name 
+		FROM Goals g
+		LEFT JOIN SubGoals sg ON g.goal_id = sg.goal_id
+		WHERE g.user_id = ?
+		ORDER BY g.goal_id, sg.line_number;
+	`;
+
+	const goalsWithSubGoals = await env.DB.prepare(query).bind(user_id).all();
+	const goalsMap = new Map();
+
+	goalsWithSubGoals.results.forEach((row) => {
+		if (!goalsMap.has(row.goal_id)) {
+			goalsMap.set(row.goal_id, {
+				goal_id: row.goal_id,
+				goal_name: row.goal_name,
+				subgoals: [],
+			});
+		}
+
+		if (row.sub_goal_id) {
+			goalsMap.get(row.goal_id).subgoals.push({
+				sub_goal_id: row.sub_goal_id,
+				sub_goal_name: row.sub_goal_name,
+			});
+		}
+	});
+
+	return Array.from(goalsMap.values());
+};
+
+export const findGoalAndSubGoalsByGoalId = async (env: Env, goal_id: any) => {
+	const query = `
+		SELECT 
+			g.goal_id, 
+			g.goal_name, 
+			g.plan,
+			g.time_line,
+			g.aof,
+			sg.sub_goal_id, 
+			sg.sub_goal_name,
+			sg.plan as sub_goal_plan,
+			sg.line_number
+		FROM Goals g
+		LEFT JOIN SubGoals sg ON g.goal_id = sg.goal_id
+		WHERE g.goal_id = ?
+		ORDER BY sg.line_number;
+	`;
+
+	const goalWithSubGoals = await env.DB.prepare(query).bind(goal_id).all();
+	console.log('goalWithSubGoals', goalWithSubGoals);
+
+	if (!goalWithSubGoals.results.length) {
+		return null;
+	}
+
+	const goal: Goal = {
+		goal_id: goalWithSubGoals.results[0].goal_id as number,
+		goal_name: goalWithSubGoals.results[0].goal_name as string,
+		plan: goalWithSubGoals.results[0].plan as string,
+		time_line: goalWithSubGoals.results[0].time_line as string,
+		aof: goalWithSubGoals.results[0].aof as string,
+		subgoals: [] as SubGoal[],
+	};
+
+	goalWithSubGoals.results.forEach((row) => {
+		if (row.sub_goal_id) {
+			goal.subgoals.push({
+				goal_id: row.goal_id as number,
+				sub_goal_id: row.sub_goal_id as number,
+				sub_goal_name: row.sub_goal_name as string,
+				sub_goal_plan: row.sub_goal_plan as string,
+				line_number: row.line_number as number,
+			});
+		}
+	});
+
+	return goal;
 };
