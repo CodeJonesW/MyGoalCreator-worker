@@ -3,7 +3,7 @@ import { Env } from '../types';
 
 const markdownPrompt = `Please format your response in valid Markdown, adhering to the following:
 				- Use headings with "#" for levels (e.g., "#", "##", "###").
-				- Mark the end of lists with a new line.
+				- Mark the end of unordered lists with a new line.
 				- Mark headings and subheadings with a new line.
 				- Do not use numbers in headings.
 				- Do not bold or italicize text.
@@ -29,6 +29,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 				role: 'system',
 				content: markdownPrompt,
 			},
+			{ role: 'system', content: 'Make markdown heading (e.g. #) relate to the timeline of the goal' },
 		],
 		model: 'gpt-4o-mini',
 	});
