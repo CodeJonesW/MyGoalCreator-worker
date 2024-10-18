@@ -47,3 +47,18 @@ CREATE TABLE IF NOT EXISTS Auth (
     login_attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
 );
+
+CREATE TABLE Timelines (
+    id SERIAL PRIMARY KEY, 
+    title VARCHAR(255) NOT NULL, 
+    timeline_type ENUM('day', 'week', 'month', 'year', 'topic') NOT NULL, 
+    parent_id INTEGER, -- Optional parent ID for nested timelines
+    FOREIGN KEY (parent_id) REFERENCES Timelines(id) 
+);
+
+CREATE TABLE PlanItems (
+    id SERIAL PRIMARY KEY, 
+    timeline_id INTEGER NOT NULL, 
+    description TEXT NOT NULL,
+    FOREIGN KEY (timeline_id) REFERENCES Timelines(id) 
+);
