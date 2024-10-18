@@ -100,19 +100,3 @@ export const parseGoalPlanHeadersAndContentV2 = (goal: any) => {
 
 	return sections;
 };
-
-const determineTimelineType = (heading: string): 'day' | 'week' | 'month' | 'year' | 'unknown' => {
-	const normalizedHeading = heading.toLowerCase();
-
-	if (normalizedHeading.includes('day')) {
-		return 'day';
-	} else if (normalizedHeading.includes('week')) {
-		return 'week';
-	} else if (normalizedHeading.includes('month')) {
-		return 'month';
-	} else if (normalizedHeading.includes('year')) {
-		return 'year';
-	} else {
-		return 'unknown'; // Default type if no specific time unit is found
-	}
-};
