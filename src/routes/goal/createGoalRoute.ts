@@ -4,7 +4,7 @@ import { errorResponse } from '../../utils/response_utils';
 
 export const createGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
-	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db_queries');
+	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db/db_queries');
 	try {
 		const authResponse = await verifyToken(request, env);
 		if (authResponse instanceof Response) return authResponse;

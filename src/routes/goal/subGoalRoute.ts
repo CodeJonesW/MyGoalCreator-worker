@@ -1,7 +1,7 @@
 import { Env } from '../../types';
 import { verifyToken } from '../../utils/auth';
 import { createSubGoal } from '../../utils/ai_completions';
-import { getGoalById, getSubGoalByGoalIdAndSubGoalName } from '../../utils/db_queries';
+import { getGoalById, getSubGoalByGoalIdAndSubGoalName } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {

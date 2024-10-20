@@ -2,9 +2,14 @@ type PlanStructure = {
 	[level1Heading: string]: { [level2Heading: string]: string[] } | string[];
 };
 
-export const generateInsertsForTimelinesAndPlanItems = (plan: PlanStructure, startingTimelineId: number, startingPlanItemId: number) => {
-	const timelineInserts: string[] = [];
-	const planItemInserts: string[] = [];
+export const generatePreparedStatementsForTimelinesAndPlanItems = (
+	db: D1Database,
+	plan: PlanStructure,
+	startingTimelineId: number,
+	startingPlanItemId: number,
+	goalId: number
+): D1PreparedStatement[] => {
+	const statements: D1PreparedStatement[] = [];
 	let timelineId = startingTimelineId + 1; // Start with the given timeline ID
 	let planItemId = startingPlanItemId + 1; // Start with the given plan item ID
 	const timelineMap: { [key: string]: number } = {}; // Map for timeline ID lookups
@@ -14,10 +19,10 @@ export const generateInsertsForTimelinesAndPlanItems = (plan: PlanStructure, sta
 		// Insert level 1 timeline
 		const timelineType = determineTimelineType(level1Heading);
 		timelineMap[level1Heading] = timelineId;
-		timelineInserts.push(
-			`INSERT INTO Timelines (id, title, timeline_type, parent_id) VALUES (${timelineId}, '${escapeSQL(
-				level1Heading
-			)}', '${timelineType}', NULL);`
+		statements.push(
+			db
+				.prepare(`INSERT INTO Timelines (id, title, timeline_type, goal_id, parent_id) VALUES (?, ?, ?, ?, NULL)`)
+				.bind(timelineId, level1Heading, timelineType, goalId)
 		);
 		const parentTimelineId = timelineId; // Store the parent timeline ID
 		timelineId++;
@@ -25,8 +30,10 @@ export const generateInsertsForTimelinesAndPlanItems = (plan: PlanStructure, sta
 		if (Array.isArray(level2Contents)) {
 			// If level2Contents is an array, insert directly under the level 1 timeline
 			level2Contents.forEach((item) => {
-				planItemInserts.push(
-					`INSERT INTO PlanItems (id, timeline_id, description) VALUES (${planItemId}, ${parentTimelineId}, '${escapeSQL(item)}');`
+				statements.push(
+					db
+						.prepare(`INSERT INTO PlanItems (id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
+						.bind(planItemId, parentTimelineId, item, goalId)
 				);
 				planItemId++;
 			});
@@ -36,18 +43,20 @@ export const generateInsertsForTimelinesAndPlanItems = (plan: PlanStructure, sta
 				// Insert level 2 timeline with level 1 as the parent
 				const level2TimelineType = determineTimelineType(level2Heading);
 				timelineMap[level2Heading] = timelineId;
-				timelineInserts.push(
-					`INSERT INTO Timelines (id, title, timeline_type, parent_id) VALUES (${timelineId}, '${escapeSQL(
-						level2Heading
-					)}', '${level2TimelineType}', ${parentTimelineId});`
+				statements.push(
+					db
+						.prepare(`INSERT INTO Timelines (id, title, timeline_type, parent_id, goal_id) VALUES (?, ?, ?, ?, ?)`)
+						.bind(timelineId, level2Heading, level2TimelineType, parentTimelineId, goalId)
 				);
 				const currentTimelineId = timelineId; // Store the current timeline ID for plan items
 				timelineId++;
 
 				// Insert each plan item under this level 2 timeline
 				items.forEach((item) => {
-					planItemInserts.push(
-						`INSERT INTO PlanItems (id, timeline_id, description) VALUES (${planItemId}, ${currentTimelineId}, '${escapeSQL(item)}');`
+					statements.push(
+						db
+							.prepare(`INSERT INTO PlanItems (id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
+							.bind(planItemId, currentTimelineId, item, goalId)
 					);
 					planItemId++;
 				});
@@ -55,13 +64,7 @@ export const generateInsertsForTimelinesAndPlanItems = (plan: PlanStructure, sta
 		}
 	});
 
-	// Combine timeline and plan item inserts into one array
-	return [...timelineInserts, ...planItemInserts];
-};
-
-// Utility function to escape single quotes in SQL values
-const escapeSQL = (text: string) => {
-	return text.replace(/'/g, "''");
+	return statements;
 };
 
 // Determine the timeline type based on the heading content

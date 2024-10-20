@@ -1,9 +1,12 @@
 import { Env } from '../../types';
-import { verifyToken } from '../../utils/auth';
-import { checkGoalExists } from '../../utils/db_queries';
+import { parseGoalPlanHeadersAndContent } from '../../utils/md_parser';
+import { generatePreparedStatementsForTimelinesAndPlanItems } from '../../utils/db/query_gen';
+import { getLatestPlanItemId, getLatestTimelineId } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const trackGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+	const { verifyToken } = await import('../../utils/auth');
+	const { getGoalById } = await import('../../utils/db/db_queries');
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
 	const user = authResponse.user;
@@ -13,8 +16,8 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 	if (!goal_id) {
 		return errorResponse('Missing goal_id', 400);
 	}
-	const goalExists = checkGoalExists(goal_id, env);
-	if (!goalExists) {
+	const goal = await getGoalById(env, goal_id);
+	if (!goal) {
 		return errorResponse('Goal not found', 404);
 	}
 
@@ -25,6 +28,19 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 		}
 		const { success } = await env.DB.prepare(`INSERT INTO TrackedGoals (goal_id, user_id) VALUES (?, ?)`).bind(goal_id, user.user_id).run();
 		if (success) {
+			const parsed = parseGoalPlanHeadersAndContent(goal);
+			const latestTimelineId = await getLatestTimelineId(env);
+			const latestPlanItemId = await getLatestPlanItemId(env);
+			const statements = generatePreparedStatementsForTimelinesAndPlanItems(
+				env.DB,
+				parsed,
+				latestTimelineId as number,
+				latestPlanItemId as number,
+				goal.goal_id as number
+			);
+			await env.DB.batch(statements);
+			console.log('Batch execution completed successfully.');
+
 			return new Response(JSON.stringify({ message: 'User added successfully' }), {
 				status: 200,
 				headers: { 'Content-Type': 'application/json' },

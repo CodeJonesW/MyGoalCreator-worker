@@ -1,5 +1,5 @@
 import bcrypt from 'bcryptjs';
-import { checkIfUserExistsByEmail } from '../../utils/db_queries';
+import { checkIfUserExistsByEmail } from '../../utils/db/db_queries';
 import { Env } from '../../types';
 import { errorResponse } from '../../utils/response_utils';
 

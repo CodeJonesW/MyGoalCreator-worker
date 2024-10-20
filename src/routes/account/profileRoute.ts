@@ -1,5 +1,5 @@
 import { Env } from '../../types';
-import { checkUserFirstLogin, findUserTrackedGoal, findUserRecentGoal, findUserClientData, findUserGoals } from '../../utils/db_queries';
+import { checkUserFirstLogin, findUserTrackedGoal, findUserRecentGoal, findUserClientData, findUserGoals } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (request: Request, env: Env): Promise<Response> => {
