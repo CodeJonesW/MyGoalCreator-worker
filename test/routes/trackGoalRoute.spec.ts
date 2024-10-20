@@ -3,22 +3,18 @@ import { Env, ErrorResponse, SuccessResponse } from '../../src/types';
 import { markdown_plan_1 } from '../testUtils.ts/mockData';
 import { trackGoalRoute } from '../../src/routes/goal/trackGoalRoute';
 
-vi.mock('../../src/utils/db_queries', () => ({
+vi.mock('../../src/utils/db/db_queries', () => ({
 	getGoalById: vi.fn(),
 	getLatestPlanItemId: vi.fn(),
 	getLatestTimelineId: vi.fn(),
-}));
-
-vi.mock('../../src/utils/db/batch_inserts', () => ({
-	performBatchInserts: vi.fn(),
 }));
 
 vi.mock('../../src/utils/md_parser', () => ({
 	parseGoalPlanHeadersAndContent: vi.fn(),
 }));
 
-vi.mock('../../src/utils/query_gen', () => ({
-	generateInsertsForTimelinesAndPlanItems: vi.fn(),
+vi.mock('../../src/utils/db/query_gen', () => ({
+	generatePreparedStatementsForTimelinesAndPlanItems: vi.fn(),
 }));
 
 vi.mock('../../src/utils/auth', () => ({
@@ -77,7 +73,7 @@ describe('Track Goal Route', () => {
 			user: { user_id: 1, email: 'test@example.com' },
 		});
 
-		const { getGoalById } = await import('../../src/utils/db_queries');
+		const { getGoalById } = await import('../../src/utils/db/db_queries');
 
 		(getGoalById as Mock).mockResolvedValue(null);
 
@@ -99,7 +95,7 @@ describe('Track Goal Route', () => {
 			user: { user_id: 1, email: 'test@example.com' },
 		});
 
-		const { getGoalById } = await import('../../src/utils/db_queries');
+		const { getGoalById } = await import('../../src/utils/db/db_queries');
 
 		(getGoalById as Mock).mockResolvedValue({
 			goal_id: 1,
@@ -130,10 +126,9 @@ describe('Track Goal Route', () => {
 			user: { user_id: 1, email: 'test@example.com' },
 		});
 
-		const { getGoalById, getLatestPlanItemId, getLatestTimelineId } = await import('../../src/utils/db_queries');
+		const { getGoalById, getLatestPlanItemId, getLatestTimelineId } = await import('../../src/utils/db/db_queries');
 		const { parseGoalPlanHeadersAndContent } = await import('../../src/utils/md_parser');
-		const { generateInsertsForTimelinesAndPlanItems } = await import('../../src/utils/query_gen');
-		const { performBatchInserts } = await import('../../src/utils/db/batch_inserts');
+		const { generatePreparedStatementsForTimelinesAndPlanItems } = await import('../../src/utils/db/query_gen');
 
 		(getGoalById as Mock).mockResolvedValue({
 			goal_id: 1,
@@ -145,8 +140,10 @@ describe('Track Goal Route', () => {
 		(parseGoalPlanHeadersAndContent as Mock).mockReturnValue({});
 		(getLatestTimelineId as Mock).mockResolvedValue(100);
 		(getLatestPlanItemId as Mock).mockResolvedValue(200);
-		(generateInsertsForTimelinesAndPlanItems as Mock).mockReturnValue(['INSERT INTO Timelines ...', 'INSERT INTO PlanItems ...']);
-		(performBatchInserts as Mock).mockResolvedValue(undefined);
+		(generatePreparedStatementsForTimelinesAndPlanItems as Mock).mockReturnValue([
+			'INSERT INTO Timelines ...',
+			'INSERT INTO PlanItems ...',
+		]);
 
 		const response = await trackGoalRoute(request, mockEnv);
 		const result: SuccessResponse = await response.json();

@@ -27,7 +27,7 @@ vi.mock('openai', async (importOriginal) => {
 	};
 });
 
-vi.mock('../../src/utils/db_queries', () => ({
+vi.mock('../../src/utils/db/db_queries', () => ({
 	checkIfUserHasAnalyzeRequests: vi.fn(),
 }));
 
@@ -62,7 +62,7 @@ describe('Analyze Route', () => {
 			user: { user_id: 1 },
 		});
 
-		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db_queries');
+		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
 		// @ts-ignore
 		checkIfUserHasAnalyzeRequests.mockResolvedValue(false); // Simulate no analyze requests left
 
@@ -85,7 +85,7 @@ describe('Analyze Route', () => {
 			user: { user_id: 1 },
 		});
 
-		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db_queries');
+		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
 		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(true); // Simulate that the user has analyze requests
 		mockPreparedStatement.first.mockResolvedValueOnce({
 			analyze_requests: 5,
