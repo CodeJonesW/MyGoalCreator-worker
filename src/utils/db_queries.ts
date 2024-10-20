@@ -131,3 +131,13 @@ export const findGoalAndSubGoalsByGoalId = async (env: Env, goal_id: any) => {
 
 	return goal;
 };
+
+export const getLatestTimelineId = async (env: Env) => {
+	const { results } = await env.DB.prepare(`SELECT MAX(id) as latest_id FROM Timelines`).all();
+	return results[0].latest_id;
+};
+
+export const getLatestPlanItemId = async (env: Env) => {
+	const { results } = await env.DB.prepare(`SELECT MAX(id) as latest_id FROM PlanItems`).all();
+	return results[0].latest_id;
+};

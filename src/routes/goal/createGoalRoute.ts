@@ -1,10 +1,10 @@
 import { Env } from '../../types';
-import { verifyToken } from '../../utils/auth';
-import { checkIfUserHasAnalyzeRequests } from '../../utils/db_queries';
 import { createGoal } from '../../utils/ai_completions';
 import { errorResponse } from '../../utils/response_utils';
 
 export const createGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+	const { verifyToken } = await import('../../utils/auth');
+	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db_queries');
 	try {
 		const authResponse = await verifyToken(request, env);
 		if (authResponse instanceof Response) return authResponse;
@@ -20,9 +20,7 @@ export const createGoalRoute = async (request: Request, env: Env): Promise<Respo
 		if (!goal) {
 			return errorResponse('Goal is required', 400);
 		}
-
 		const stream = await createGoal(env, goal, areaOfFocus, timeline, user);
-
 		return new Response(stream, {
 			headers: {
 				'Content-Type': 'text/event-stream',
