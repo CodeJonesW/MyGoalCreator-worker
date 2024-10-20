@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, Mock } from 'vitest';
 import { createGoalRoute } from '../../src/routes/goal/createGoalRoute';
 import { Env } from '../../src/types';
 
@@ -27,19 +27,24 @@ vi.mock('openai', async (importOriginal) => {
 	};
 });
 
-// Mock the checkIfUserHasAnalyzeRequests function from db_queries
 vi.mock('../../src/utils/db_queries', () => ({
 	checkIfUserHasAnalyzeRequests: vi.fn(),
 }));
 
 describe('Analyze Route', () => {
+	const mockPreparedStatement = {
+		bind: vi.fn().mockReturnThis(),
+		first: vi.fn(),
+		all: vi.fn(),
+		run: vi.fn(),
+	};
+
 	const mockEnv: Env = {
 		DB: {
-			prepare: vi.fn().mockReturnThis(),
-			bind: vi.fn().mockReturnThis(),
-			all: vi.fn(),
-			first: vi.fn(),
-			run: vi.fn(),
+			prepare: vi.fn(() => mockPreparedStatement),
+			dump: vi.fn(),
+			batch: vi.fn(),
+			exec: vi.fn(),
 		} as any,
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
@@ -72,46 +77,33 @@ describe('Analyze Route', () => {
 	it('should return 200, stream the response, and properly update the database', async () => {
 		const request = new Request('http://localhost/api/analyze', {
 			method: 'POST',
-			body: JSON.stringify({ goal: 'Test goal', timeline: '1 week' }), // Include goal and timeline
+			body: JSON.stringify({ goal: 'Test goal', timeline: '1 week' }),
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue({
+		(verifyToken as Mock).mockResolvedValue({
 			user: { user_id: 1 },
 		});
 
 		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db_queries');
-		// @ts-ignore
-		checkIfUserHasAnalyzeRequests.mockResolvedValue(true); // Simulate that the user has analyze requests
-		// @ts-ignore
-		mockEnv.DB.first.mockResolvedValueOnce({
-			analyze_requests: 5, // Initial value of analyze requests
+		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(true); // Simulate that the user has analyze requests
+		mockPreparedStatement.first.mockResolvedValueOnce({
+			analyze_requests: 5,
 		});
 
 		const response = await createGoalRoute(request, mockEnv);
 		const text = await response.text();
+		console.log(text);
 
 		expect(response.status).toBe(200);
-		expect(text).toContain('Test chunk part 1'); // Check for streamed content
-		expect(text).toContain('Test chunk part 2'); // Check for second chunk
+		expect(text).toContain('Test chunk part 1');
+		expect(text).toContain('Test chunk part 2');
 
 		// Verify that the goal got inserted into the database with the correct values
 		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('INSERT INTO Goals (user_id, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)');
-		// @ts-ignore
-		expect(mockEnv.DB.bind).toHaveBeenCalledWith(
-			1, // user_id
-			'Test goal', // Goal name
-			expect.any(String), // The full response content as the plan
-			'1 week', // Timeline
-			expect.any(String) // Area of focus (if provided)
-		);
-		// @ts-ignore
-		expect(mockEnv.DB.run).toHaveBeenCalledTimes(2); // One for inserting the goal and one for updating analyze requests
-
-		// Verify that the user's analyze requests were decremented
+		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1, 'Test goal', expect.any(String), '1 week', expect.any(String));
+		expect(mockPreparedStatement.run).toHaveBeenCalledTimes(2); // One for inserting the goal and one for updating analyze requests
 		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?');
-		// @ts-ignore
-		expect(mockEnv.DB.bind).toHaveBeenCalledWith(1); // user_id
+		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1); // user_id
 	});
 });
