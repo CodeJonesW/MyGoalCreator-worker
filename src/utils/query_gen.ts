@@ -56,7 +56,7 @@ export const generateInsertsForTimelinesAndPlanItems = (plan: PlanStructure, sta
 	});
 
 	// Combine timeline and plan item inserts into one array
-	return [...timelineInserts, ...planItemInserts].join('\n');
+	return [...timelineInserts, ...planItemInserts];
 };
 
 // Utility function to escape single quotes in SQL values

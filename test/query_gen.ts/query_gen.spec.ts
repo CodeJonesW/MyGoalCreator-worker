@@ -5,7 +5,7 @@ afterEach(() => {
 	vi.clearAllMocks();
 });
 
-describe('SQL Insert Generator', () => {
+describe('sql query generator', () => {
 	it('should generate correct SQL inserts for given plan structure - level 1 and level 2 headings', () => {
 		const plan = {
 			'Week 1: Introduction to Rust': {
@@ -64,7 +64,7 @@ describe('SQL Insert Generator', () => {
 
 		const latestTimelineId = 0;
 		const latestPlanItemId = 0;
-
+		// add goal id to this function so it ends in the inserts for timeline
 		const sqlInserts = generateInsertsForTimelinesAndPlanItems(plan, latestTimelineId, latestPlanItemId);
 
 		// Assertions for the generated SQL inserts for timelines
