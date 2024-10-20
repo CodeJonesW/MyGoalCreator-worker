@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS PlanItems
+DROP TABLE IF EXISTS Timelines;
 DROP TABLE IF EXISTS TrackedGoals;
 DROP TABLE IF EXISTS SubGoals;
 DROP TABLE IF EXISTS Goals;
@@ -33,7 +35,6 @@ CREATE TABLE IF NOT EXISTS SubGoals (
 );
 
 CREATE TABLE IF NOT EXISTS TrackedGoals (
-    tracked_goal_id INTEGER PRIMARY KEY,
     goal_id INTEGER,
     user_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
@@ -49,16 +50,22 @@ CREATE TABLE IF NOT EXISTS Auth (
 );
 
 CREATE TABLE Timelines (
-    id SERIAL PRIMARY KEY, 
+    id INTEGER PRIMARY KEY, 
     title VARCHAR(255) NOT NULL, 
-    timeline_type ENUM('day', 'week', 'month', 'year', 'topic') NOT NULL, 
+    timeline_type TEXT NOT NULL, 
     parent_id INTEGER, -- Optional parent ID for nested timelines
+    goal_id INTEGER, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_id) REFERENCES Timelines(id) 
+    FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );
 
 CREATE TABLE PlanItems (
-    id SERIAL PRIMARY KEY, 
+    id INTEGER PRIMARY KEY, 
     timeline_id INTEGER NOT NULL, 
+    goal_id INTEGER NOT NULL,
     description TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (timeline_id) REFERENCES Timelines(id) 
+    FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );
