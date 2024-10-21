@@ -21,6 +21,13 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 	const is_first_login = auths.results.length <= 1 ? true : false;
 	const showUiHelp = is_first_login && goalsQuery.results.length === 0;
 
+	if (recentGoal) {
+		const trackedGoal = await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE goal_id = ? AND user_id = ?`)
+			.bind(recentGoal.goal_id, user.user_id)
+			.first();
+		recentGoal.isGoalTracked = trackedGoal ? true : false;
+	}
+
 	const responseData = {
 		user: userFromDb,
 		goals: goalsQuery.results,
