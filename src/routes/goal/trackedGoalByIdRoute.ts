@@ -8,6 +8,10 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 
 	const url = new URL(request.url);
 	const goal_id = url.searchParams.get('goal_id');
+	const step = url.searchParams.get('step');
+	if (!goal_id || !step) {
+		return errorResponse('Missing required fields', 400);
+	}
 
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 	if (!goal) {
@@ -17,14 +21,16 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 	const planItems = await env.DB.prepare(`SELECT * FROM PlanItems WHERE goal_id = ?`).bind(goal_id).all();
 	const timelines = await env.DB.prepare(`SELECT * FROM Timelines WHERE goal_id = ?`).bind(goal_id).all();
 
-	console.log('planItems', planItems);
-	console.log('timelines', timelines);
-
-	const firstTimeline = timelines.results[0];
-	const firstTimelinePlanItems = planItems.results.filter((item) => item.timeline_id === firstTimeline.timeline_id);
-
-	return new Response(JSON.stringify({ planItems: firstTimelinePlanItems }), {
-		status: 200,
-		headers: { 'Content-Type': 'application/json' },
+	const selectedTimeline = timelines.results[parseInt(step) as number];
+	const selectedTimeLinePlanItems = planItems.results.filter((item) => {
+		return item.timeline_id === selectedTimeline.timeline_id;
 	});
+
+	return new Response(
+		JSON.stringify({ goal_id: goal_id, timelineName: selectedTimeline.title, planItems: selectedTimeLinePlanItems, step: step }),
+		{
+			status: 200,
+			headers: { 'Content-Type': 'application/json' },
+		}
+	);
 };
