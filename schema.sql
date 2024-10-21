@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS Goals (
 );
 
 CREATE TABLE IF NOT EXISTS TrackedGoals (
+    tracked_goal_id INTEGER PRIMARY KEY,
     goal_id INTEGER,
     user_id INTEGER,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
