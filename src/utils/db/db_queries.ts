@@ -1,4 +1,4 @@
-import { Env, Goal, SubGoal, User } from '../types';
+import { Env, Goal, SubGoal, User } from '../../types';
 
 export const checkIfUserExistsByEmail = async (email: string, env: Env): Promise<null | User> => {
 	return await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
@@ -23,8 +23,8 @@ export const checkUserFirstLogin = async (env: Env, user_id: any) => {
 	return await env.DB.prepare(`SELECT * FROM Auth WHERE user_id = ?`).bind(user_id).all();
 };
 
-export const findUserTrackedGoal = async (env: Env, user_id: any) => {
-	return await env.DB.prepare(`SELECT goal_id FROM TrackedGoals WHERE user_id = ?`).bind(user_id).first();
+export const findUserTrackedGoals = async (env: Env, user_id: any) => {
+	return await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE user_id = ?`).bind(user_id).all();
 };
 
 export const findUserRecentGoal = async (env: Env, user_id: any) => {
@@ -43,8 +43,8 @@ export const getGoalById = async (env: Env, goal_id: any) => {
 	return await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 };
 
-export const getSubGoalByGoalIdAndSubGoalName = async (env: Env, goal_id: any, sub_goal_name: any) => {
-	return await env.DB.prepare(`SELECT * FROM SubGoals WHERE goal_id = ? AND sub_goal_name = ?`).bind(goal_id, sub_goal_name).first();
+export const getGoalByParentGoalIdAndName = async (env: Env, goal_id: any, sub_goal_name: any) => {
+	return await env.DB.prepare(`SELECT * FROM Goals WHERE parent_goal_id = ? AND goal_name = ?`).bind(goal_id, sub_goal_name).first();
 };
 
 export const findUserGoalsWithSubgoals = async (env: Env, user_id: any) => {
@@ -130,4 +130,14 @@ export const findGoalAndSubGoalsByGoalId = async (env: Env, goal_id: any) => {
 	});
 
 	return goal;
+};
+
+export const getLatestTimelineId = async (env: Env) => {
+	const { results } = await env.DB.prepare(`SELECT MAX(timeline_id) as latest_id FROM Timelines`).all();
+	return results[0].latest_id;
+};
+
+export const getLatestPlanItemId = async (env: Env) => {
+	const { results } = await env.DB.prepare(`SELECT MAX(plan_item_id) as latest_id FROM PlanItems`).all();
+	return results[0].latest_id;
 };

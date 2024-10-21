@@ -27,3 +27,11 @@ export type SubGoal = {
 	line_number?: number;
 	sub_goal_plan?: string;
 };
+
+export type ErrorResponse = {
+	error: string;
+};
+
+export type SuccessResponse = {
+	message: string;
+};

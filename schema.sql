@@ -1,6 +1,8 @@
+DROP TABLE IF EXISTS PlanItems;
+DROP TABLE IF EXISTS Timelines;
 DROP TABLE IF EXISTS TrackedGoals;
-DROP TABLE IF EXISTS SubGoals;
 DROP TABLE IF EXISTS Goals;
+-- DROP TABLE IF EXISTS Auth;
 -- DROP TABLE IF EXISTS Users;
 
 
@@ -20,16 +22,9 @@ CREATE TABLE IF NOT EXISTS Goals (
     time_line TEXT,
     aof TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    parent_goal_id INTEGER,
+    FOREIGN KEY(parent_goal_id) REFERENCES Goals(goal_id),
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
-);
-CREATE TABLE IF NOT EXISTS SubGoals (
-    sub_goal_id INTEGER PRIMARY KEY,
-    goal_id INTEGER,
-    sub_goal_name TEXT,
-    plan TEXT,
-    line_number INTEGER,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
-    FOREIGN KEY(goal_id) REFERENCES Goals(goal_id)
 );
 
 CREATE TABLE IF NOT EXISTS TrackedGoals (
@@ -46,4 +41,26 @@ CREATE TABLE IF NOT EXISTS Auth (
     user_id INTEGER,
     login_attempt_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
+);
+
+CREATE TABLE Timelines (
+    timeline_id INTEGER PRIMARY KEY, 
+    title VARCHAR(255) NOT NULL, 
+    timeline_type TEXT NOT NULL, 
+    parent_id INTEGER,
+    goal_id INTEGER, 
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (parent_id) REFERENCES Timelines(timeline_id) 
+    FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
+);
+
+CREATE TABLE PlanItems (
+    plan_item_id INTEGER PRIMARY KEY, 
+    timeline_id INTEGER NOT NULL, 
+    goal_id INTEGER NOT NULL,
+    description TEXT NOT NULL,
+    item_status TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (timeline_id) REFERENCES Timelines(timeline_id) 
+    FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );

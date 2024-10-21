@@ -29,7 +29,9 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 				role: 'system',
 				content: markdownPrompt,
 			},
-			{ role: 'system', content: 'Make markdown heading (e.g. #) relate to the timeline of the goal' },
+			{ role: 'system', content: 'Make level 1 markdown headings (e.g. #) relate to the timeline of the goal' },
+			{ role: 'system', content: 'Make level 2 markdown heading (e.g. ##) relate to the specific tasks of the goal' },
+			{ role: 'system', content: 'Make bullet points represent steps to complete tasks listed in level 2 markdown headings' },
 		],
 		model: 'gpt-4o-mini',
 	});
@@ -88,13 +90,13 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 	}
 };
 
-export const createSubGoal = async (env: Env, goal: any, sub_goal_name: string, line_number: number) => {
+export const createSubGoal = async (env: Env, parent_goal: any, sub_goal_name: string) => {
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
-	const { goal_name, plan, goal_id } = goal;
+	const { goal_name: parent_goal_name, plan: parent_plan, goal_id: parent_goal_id } = parent_goal;
 
-	const result = await env.DB.prepare(`INSERT INTO SubGoals (goal_id, sub_goal_name, line_number) VALUES (?, ?, ?)`)
-		.bind(goal_id, sub_goal_name, line_number)
+	const result = await env.DB.prepare(`INSERT INTO Goals (parent_goal_id, goal_name) VALUES (?, ?)`)
+		.bind(parent_goal_id, sub_goal_name)
 		.run();
 
 	const completion = await openai.chat.completions.create({
@@ -102,9 +104,9 @@ export const createSubGoal = async (env: Env, goal: any, sub_goal_name: string, 
 		messages: [
 			{
 				role: 'system',
-				content: `You are an expert in the field of ${goal_name} and are helping the user achieve their goal.`,
+				content: `You are an expert in the field of ${parent_goal_name} and are helping the user achieve their goal.`,
 			},
-			{ role: 'system', content: `You are aware the user is trying to achieve ${goal_name} via this plan: ${plan}` },
+			{ role: 'system', content: `You are aware the user is trying to achieve ${parent_goal_name} via this plan: ${parent_plan}` },
 			{ role: 'user', content: `My goal is ${sub_goal_name}.` },
 			{ role: 'system', content: `Explain the steps to achieve this goal and provide resources.` },
 			{
@@ -145,8 +147,7 @@ export const createSubGoal = async (env: Env, goal: any, sub_goal_name: string, 
 				}
 
 				controller.enqueue(encoder.encode(`event: done\n\n`));
-				const updateResult = await env.DB.prepare(`UPDATE SubGoals SET plan = ? WHERE sub_goal_id = ?`)
-					// @ts-ignore
+				const updateResult = await env.DB.prepare(`UPDATE Goals SET plan = ? WHERE goal_id = ?`)
 					.bind(rawTotalResponse, result.meta.last_row_id)
 					.run();
 				controller.close();

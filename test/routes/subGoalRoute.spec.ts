@@ -1,6 +1,6 @@
 import { createSubGoalRoute } from '../../src/routes/goal/subGoalRoute';
-import { describe, it, expect, vi } from 'vitest';
-import { Env } from '../../src/types';
+import { describe, it, expect, vi, Mock } from 'vitest';
+import { Env, ErrorResponse } from '../../src/types';
 
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
@@ -44,9 +44,7 @@ describe('createSubGoalRoute', () => {
 			status: 401,
 			headers: { 'Content-Type': 'application/json' },
 		});
-		// @ts-ignore
-
-		verifyToken.mockResolvedValue(verifyFailedResponse);
+		(verifyToken as Mock).mockResolvedValue(verifyFailedResponse);
 
 		const request = new Request('http://localhost:8787', {
 			method: 'POST',
@@ -59,8 +57,7 @@ describe('createSubGoalRoute', () => {
 
 	it('should return 404 if the goal does not exist', async () => {
 		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue({
+		(verifyToken as Mock).mockResolvedValue({
 			user: { user_id: 1, email: 'test@example.com' },
 		});
 
@@ -72,9 +69,8 @@ describe('createSubGoalRoute', () => {
 		});
 		const response = await createSubGoalRoute(request, mockEnv);
 
-		const json = await response.json();
+		const json: ErrorResponse = await response.json();
 		expect(response.status).toBe(404);
-		//@ts-ignore
 		expect(json.error).toBe('Goal not found');
 	});
 

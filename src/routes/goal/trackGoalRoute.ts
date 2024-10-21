@@ -1,9 +1,12 @@
-import { Env } from '../../types';
-import { verifyToken } from '../../utils/auth';
-import { checkGoalExists } from '../../utils/db_queries';
+import { Env, Goal } from '../../types';
+import { parseGoalPlanHeadersAndContent } from '../../utils/md_parser';
+import { generatePreparedStatementsForTimelinesAndPlanItems } from '../../utils/db/query_gen';
+import { getLatestPlanItemId, getLatestTimelineId } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const trackGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+	const { verifyToken } = await import('../../utils/auth');
+	const { getGoalById } = await import('../../utils/db/db_queries');
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
 	const user = authResponse.user;
@@ -13,19 +16,28 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 	if (!goal_id) {
 		return errorResponse('Missing goal_id', 400);
 	}
-	const goalExists = checkGoalExists(goal_id, env);
-	if (!goalExists) {
+	const goal = await getGoalById(env, goal_id);
+	if (!goal) {
 		return errorResponse('Goal not found', 404);
 	}
 
 	try {
-		const trackedGoal = await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE user_id = ?`).bind(user.user_id).first();
+		const trackedGoal = await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE goal_id = ?`).bind(goal.goal_id).first();
 		if (trackedGoal) {
-			await env.DB.prepare(`DELETE FROM TrackedGoals WHERE user_id = ?`).bind(user.user_id).run();
+			return new Response(JSON.stringify({ message: 'Goal already tracked' }), {
+				status: 200,
+				headers: { 'Content-Type': 'application/json' },
+			});
 		}
+
 		const { success } = await env.DB.prepare(`INSERT INTO TrackedGoals (goal_id, user_id) VALUES (?, ?)`).bind(goal_id, user.user_id).run();
 		if (success) {
-			return new Response(JSON.stringify({ message: 'User added successfully' }), {
+			const timeLineExists = await env.DB.prepare('SELECT * FROM Timelines WHERE goal_id = ?').bind(goal_id).first();
+			if (!timeLineExists) {
+				await parseGoalAndInsertTimelineAndPlanItems(env, goal as Goal);
+			}
+
+			return new Response(JSON.stringify({ message: 'Goal tracked successfully' }), {
 				status: 200,
 				headers: { 'Content-Type': 'application/json' },
 			});
@@ -36,4 +48,18 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 		console.log('Error tracking goal', error);
 		return errorResponse('Failed to insert trackedgoal', 500);
 	}
+};
+
+const parseGoalAndInsertTimelineAndPlanItems = async (env: Env, goal: Goal) => {
+	const parsed = parseGoalPlanHeadersAndContent(goal);
+	const latestTimelineId = await getLatestTimelineId(env);
+	const latestPlanItemId = await getLatestPlanItemId(env);
+	const statements = generatePreparedStatementsForTimelinesAndPlanItems(
+		env.DB,
+		parsed,
+		latestTimelineId as number,
+		latestPlanItemId as number,
+		goal.goal_id as number
+	);
+	await env.DB.batch(statements);
 };

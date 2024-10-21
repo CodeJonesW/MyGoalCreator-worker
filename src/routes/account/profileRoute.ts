@@ -1,5 +1,11 @@
 import { Env } from '../../types';
-import { checkUserFirstLogin, findUserTrackedGoal, findUserRecentGoal, findUserClientData, findUserGoals } from '../../utils/db_queries';
+import {
+	checkUserFirstLogin,
+	findUserTrackedGoals,
+	findUserRecentGoal,
+	findUserClientData,
+	findUserGoals,
+} from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (request: Request, env: Env): Promise<Response> => {
@@ -14,18 +20,31 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 		return errorResponse('User not found', 404);
 	}
 
-	const goalsQuery = await findUserGoals(env, user.user_id);
+	const userGoals = await findUserGoals(env, user.user_id);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
-	const trackedGoal = await findUserTrackedGoal(env, user.user_id);
+	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
 	const auths = await checkUserFirstLogin(env, user.user_id);
 	const is_first_login = auths.results.length <= 1 ? true : false;
-	const showUiHelp = is_first_login && goalsQuery.results.length === 0;
+	const showUiHelp = is_first_login && userGoals.results.length === 0;
+
+	if (recentGoal) {
+		const recentGoalId = recentGoal.goal_id;
+		const isRecentGoalTracked = trackedGoals.results.filter((goal) => goal.goal_id === recentGoalId).length > 0;
+		recentGoal.isGoalTracked = isRecentGoalTracked;
+	}
+
+	if (userGoals.results.length > 0) {
+		userGoals.results.forEach((goal) => {
+			const isGoalTracked = trackedGoals.results.filter((trackedGoal) => trackedGoal.goal_id === goal.goal_id).length > 0;
+			goal.isGoalTracked = isGoalTracked;
+		});
+	}
 
 	const responseData = {
 		user: userFromDb,
-		goals: goalsQuery.results,
+		goals: userGoals.results,
 		recentGoal: recentGoal ? recentGoal : null,
-		trackedGoal: trackedGoal ? trackedGoal : null,
+		trackedGoals: trackedGoals.results,
 		showUiHelp: showUiHelp,
 	};
 

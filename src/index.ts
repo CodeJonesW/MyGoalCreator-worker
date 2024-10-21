@@ -8,7 +8,9 @@ import {
 	profileRoute,
 	loginRoute,
 	deleteGoalByIdRoute,
+	trackedGoalByIdRoute,
 } from './routes';
+import { updatePlanItemRoute } from './routes/goal/updatePlanItemRoute';
 
 export default {
 	async fetch(request, env): Promise<Response> {
@@ -44,7 +46,17 @@ export default {
 		}
 
 		if (pathname === '/api/trackGoal') {
-			return await trackGoalRoute(request, env);
+			if (request.method === 'POST') {
+				return await trackGoalRoute(request, env);
+			}
+			if (request.method === 'GET') {
+				return await trackedGoalByIdRoute(request, env);
+			}
+		}
+		if (pathname === '/api/planItem') {
+			if (request.method === 'PUT') {
+				return await updatePlanItemRoute(request, env);
+			}
 		}
 
 		return new Response('Not found', { status: 404 });

@@ -1,25 +1,25 @@
 import { Env } from '../../types';
-import { verifyToken } from '../../utils/auth';
 import { createSubGoal } from '../../utils/ai_completions';
-import { getGoalById, getSubGoalByGoalIdAndSubGoalName } from '../../utils/db_queries';
+import { getGoalById, getGoalByParentGoalIdAndName } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+	const { verifyToken } = await import('../../utils/auth');
 	const authResponse = await verifyToken(request, env);
 	if (authResponse instanceof Response) return authResponse;
 
-	const { goal_id, sub_goal_name, line_number }: any = await request.json();
+	const { goal_id: parent_goal_id, sub_goal_name, line_number }: any = await request.json();
 
-	if (!goal_id || !sub_goal_name || !line_number) {
+	if (!parent_goal_id || !sub_goal_name || !line_number) {
 		return errorResponse('Missing required fields', 400);
 	}
 
-	const goal = await getGoalById(env, goal_id);
-	if (!goal) {
+	const parent_goal = await getGoalById(env, parent_goal_id);
+	if (!parent_goal) {
 		return errorResponse('Goal not found', 404);
 	}
 
-	const subGoal = await getSubGoalByGoalIdAndSubGoalName(env, goal_id, sub_goal_name);
+	const subGoal = await getGoalByParentGoalIdAndName(env, parent_goal_id, sub_goal_name);
 	if (subGoal) {
 		return new Response(JSON.stringify({ message: 'success', subGoal }), {
 			status: 200,
@@ -27,7 +27,7 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 		});
 	}
 
-	const stream = await createSubGoal(env, goal, sub_goal_name, line_number);
+	const stream = await createSubGoal(env, parent_goal, sub_goal_name);
 
 	return new Response(stream, {
 		headers: {

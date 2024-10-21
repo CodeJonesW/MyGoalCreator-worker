@@ -10,9 +10,13 @@ export const goalByIdRoute = async (request: Request, env: Env): Promise<Respons
 	const goal_id = url.searchParams.get('goal_id');
 
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
+	const trackedGoals = await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE goal_id = ?`).bind(goal_id).first();
 	if (!goal) {
 		return errorResponse('Goal not found', 404);
 	}
+
+	const isGoalTracked = trackedGoals ? true : false;
+	goal.isGoalTracked = isGoalTracked;
 
 	return new Response(JSON.stringify({ goal }), {
 		status: 200,

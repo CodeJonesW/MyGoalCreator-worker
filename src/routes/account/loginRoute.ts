@@ -1,5 +1,5 @@
 import { Env } from '../../types';
-import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '../../utils/db_queries';
+import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const loginRoute = async (request: Request, env: Env): Promise<Response> => {

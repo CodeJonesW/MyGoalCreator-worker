@@ -1,5 +1,10 @@
-import { Env } from '../types';
 import jwt from 'jsonwebtoken';
+
+export interface Env {
+	DB: D1Database;
+	JWT_SECRET: string;
+	OPENAI_API_KEY: string;
+}
 
 export const verifyToken = async (request: Request, env: Env): Promise<{ user: any } | Response> => {
 	const authHeader = request.headers.get('Authorization');

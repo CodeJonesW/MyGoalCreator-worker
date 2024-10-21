@@ -1,31 +1,4 @@
-import { getGoalById } from './db_queries';
-import { Env } from '../types';
-import { errorResponse } from './response_utils';
-
-export const parseGoalPlanHeaders = async (goal_id: any, env: Env) => {
-	const goal = await getGoalById(env, goal_id);
-	if (!goal) {
-		console.log('Goal not found in parseGoalForPlan');
-		return errorResponse('Goal not found', 404);
-	}
-	const plan = goal.plan;
-	const planLines = (plan as string).split('\n');
-
-	const headers: string[] = [];
-	(planLines as []).forEach((line: string) => {
-		if (/^#/m.test(line) || /^##/m.test(line)) {
-			headers.push(line);
-		}
-	});
-	return headers;
-};
-
-export const parseGoalPlanHeadersAndContent = async (goal_id: any, env: Env) => {
-	const goal = await getGoalById(env, goal_id);
-	if (!goal) {
-		console.log('Goal not found in parseGoalPlanHeadersAndContent');
-		return errorResponse('Goal not found', 404);
-	}
+export const parseGoalPlanHeadersAndContent = (goal: any) => {
 	const plan = goal.plan;
 	const planLines = (plan as string).split('\n');
 
@@ -55,52 +28,6 @@ export const parseGoalPlanHeadersAndContent = async (goal_id: any, env: Env) => 
 	return sections;
 };
 
-export const parseMarkdownPlan = async (goal_id: number, env: Env) => {
-	const goal = await getGoalById(env, goal_id);
-	if (!goal) {
-		console.log('Goal not found in parseMarkdownPlan');
-		return errorResponse('Goal not found', 404);
-	}
-	const plan = goal.plan;
-
-	// Split the continuous string into sections based on level 1 headings (#)
-	const parts = (plan as string).split(/(?=#\s+)/);
-	const parsedData: { [key: string]: any[] } = {};
-	let currentHeading: string | null = null;
-	let currentContent: any[] = [];
-
-	parts.forEach((part) => {
-		// Match level 1 heading
-		const level1Match = /^#\s+(.*)/.exec(part);
-		const isLevel1Heading = level1Match && level1Match[1];
-
-		if (isLevel1Heading) {
-			// If there is a current heading, store the accumulated content
-			if (currentHeading) {
-				parsedData[removeMarkdownSyntax(currentHeading)] = currentContent.map(removeMarkdownSyntax);
-			}
-			// Set the new heading and reset the content
-			currentHeading = level1Match[1].trim();
-			currentContent = [];
-
-			// Split the remaining content by lines, excluding the heading
-			const remainingContent = part.replace(/^#\s+.*\n?/, '');
-			currentContent = remainingContent
-				.split(/(?=##|\n)/)
-				.map((line) => removeMarkdownSyntax(line.trim()))
-				.filter(Boolean);
-		}
-	});
-
-	// Add the last section if it exists
-	if (currentHeading) {
-		parsedData[removeMarkdownSyntax(currentHeading)] = currentContent.map(removeMarkdownSyntax);
-	}
-
-	return parsedData;
-};
-
-// Function to remove Markdown syntax from a line
 const removeMarkdownSyntax = (text: string) => {
 	return text
 		.replace(/^#+\s*/, '') // Remove Markdown headers (e.g., #, ##, ###)
@@ -113,4 +40,63 @@ const removeMarkdownSyntax = (text: string) => {
 		.replace(/^\s*>+\s?/gm, '') // Remove blockquote syntax
 		.replace(/^-+\s?/gm, '') // Remove list item syntax
 		.trim(); // Trim any remaining whitespace
+};
+
+export const parseGoalPlanHeadersAndContentV2 = (goal: any) => {
+	const plan = goal.plan;
+	const planLines = (plan as string).split('\n');
+
+	const sections: { [key: string]: { [key: string]: string[] } } = {};
+	let currentHeadingLevel1: string | null = null;
+	let currentHeadingLevel2: string | null = null;
+	let currentContent: string[] = [];
+
+	planLines.forEach((line: string) => {
+		// Check for level 1 heading (e.g., "# Heading")
+		if (/^#\s+/.test(line)) {
+			// Save previous level 2 content if it exists
+			if (currentHeadingLevel1 && currentHeadingLevel2) {
+				sections[removeMarkdownSyntax(currentHeadingLevel1)][removeMarkdownSyntax(currentHeadingLevel2)] =
+					currentContent.map(removeMarkdownSyntax);
+			}
+			// Initialize a new object for level 1 heading if it doesn't exist
+			if (currentHeadingLevel1) {
+				sections[removeMarkdownSyntax(currentHeadingLevel1)] = sections[removeMarkdownSyntax(currentHeadingLevel1)] || {};
+			}
+			// Update current level 1 heading and reset level 2 and content
+			currentHeadingLevel1 = line;
+			currentHeadingLevel2 = null;
+			currentContent = [];
+		}
+		// Check for level 2 heading (e.g., "## Subheading")
+		else if (/^##\s+/.test(line)) {
+			// Save previous level 2 content if it exists
+			if (currentHeadingLevel1 && currentHeadingLevel2) {
+				sections[removeMarkdownSyntax(currentHeadingLevel1)][removeMarkdownSyntax(currentHeadingLevel2)] =
+					currentContent.map(removeMarkdownSyntax);
+			}
+			// Ensure the parent level 1 heading exists in the sections object
+			if (currentHeadingLevel1) {
+				sections[removeMarkdownSyntax(currentHeadingLevel1)] = sections[removeMarkdownSyntax(currentHeadingLevel1)] || {};
+			}
+			// Update current level 2 heading and reset content
+			currentHeadingLevel2 = line;
+			currentContent = [];
+		}
+		// Accumulate content under current level 2 heading
+		else if (currentHeadingLevel1 && currentHeadingLevel2) {
+			if (line.trim() === '') {
+				return;
+			}
+			currentContent.push(line);
+		}
+	});
+
+	// Save any remaining content for the last level 2 heading
+	if (currentHeadingLevel1 && currentHeadingLevel2) {
+		sections[removeMarkdownSyntax(currentHeadingLevel1)][removeMarkdownSyntax(currentHeadingLevel2)] =
+			currentContent.map(removeMarkdownSyntax);
+	}
+
+	return sections;
 };
