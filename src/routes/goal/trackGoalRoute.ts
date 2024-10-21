@@ -44,7 +44,7 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 				console.log('Batch execution completed successfully.');
 			}
 
-			return new Response(JSON.stringify({ message: 'User added successfully' }), {
+			return new Response(JSON.stringify({ message: 'Goal tracked successfully' }), {
 				status: 200,
 				headers: { 'Content-Type': 'application/json' },
 			});
