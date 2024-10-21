@@ -10,6 +10,7 @@ import {
 	deleteGoalByIdRoute,
 	trackedGoalByIdRoute,
 } from './routes';
+import { updatePlanItemRoute } from './routes/goal/updatePlanItemRoute';
 
 export default {
 	async fetch(request, env): Promise<Response> {
@@ -50,6 +51,11 @@ export default {
 			}
 			if (request.method === 'GET') {
 				return await trackedGoalByIdRoute(request, env);
+			}
+		}
+		if (pathname === '/api/planItem') {
+			if (request.method === 'PUT') {
+				return await updatePlanItemRoute(request, env);
 			}
 		}
 

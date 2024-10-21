@@ -72,25 +72,35 @@ describe('sql query generator', () => {
 		);
 		expect(mockedBinds[1]).toEqual([2, 'Understanding the Basics', 'topic', 1, goalId]);
 
-		expect(mockedPrepares[2][0]).toEqual('INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)');
-		expect(mockedBinds[2]).toEqual([1, 2, "Familiarize yourself with Rust's syntax and concepts.", goalId]);
+		expect(mockedPrepares[2][0]).toEqual(
+			'INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)'
+		);
+		expect(mockedBinds[2]).toEqual([1, 2, "Familiarize yourself with Rust's syntax and concepts.", goalId, 'todo']);
 
-		expect(mockedPrepares[3][0]).toEqual('INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)');
-		expect(mockedBinds[3]).toEqual([2, 2, 'Read the first few chapters of "The Rust Programming Language".', goalId]);
+		expect(mockedPrepares[3][0]).toEqual(
+			'INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)'
+		);
+		expect(mockedBinds[3]).toEqual([2, 2, 'Read the first few chapters of "The Rust Programming Language".', goalId, 'todo']);
 
-		expect(mockedPrepares[4][0]).toEqual('INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)');
-		expect(mockedBinds[4]).toEqual([3, 2, 'Install Rust using rustup and set up your development environment.', goalId]);
+		expect(mockedPrepares[4][0]).toEqual(
+			'INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)'
+		);
+		expect(mockedBinds[4]).toEqual([3, 2, 'Install Rust using rustup and set up your development environment.', goalId, 'todo']);
 
 		expect(mockedPrepares[5][0]).toEqual(
 			'INSERT INTO Timelines (timeline_id, title, timeline_type, parent_id, goal_id) VALUES (?, ?, ?, ?, ?)'
 		);
 		expect(mockedBinds[5]).toEqual([3, 'Basic Programming Concepts', 'topic', 1, goalId]);
 
-		expect(mockedPrepares[6][0]).toEqual('INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)');
-		expect(mockedBinds[6]).toEqual([4, 3, 'Learn about data types, variables, and functional constructs in Rust.', goalId]);
+		expect(mockedPrepares[6][0]).toEqual(
+			'INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)'
+		);
+		expect(mockedBinds[6]).toEqual([4, 3, 'Learn about data types, variables, and functional constructs in Rust.', goalId, 'todo']);
 
-		expect(mockedPrepares[7][0]).toEqual('INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)');
-		expect(mockedBinds[7]).toEqual([5, 3, 'Understand ownership, borrowing, and lifetimes.', goalId]);
+		expect(mockedPrepares[7][0]).toEqual(
+			'INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)'
+		);
+		expect(mockedBinds[7]).toEqual([5, 3, 'Understand ownership, borrowing, and lifetimes.', goalId, 'todo']);
 
 		// expect(mockEnv.DB.prepare).toHaveBeenCalledWith(
 		// 	'INSERT INTO Timelines (id, title, timeline_type, goal_id, parent_id) VALUES (?, ?, ?, ?, ?)'

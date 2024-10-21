@@ -59,6 +59,7 @@ CREATE TABLE PlanItems (
     timeline_id INTEGER NOT NULL, 
     goal_id INTEGER NOT NULL,
     description TEXT NOT NULL,
+    item_status TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (timeline_id) REFERENCES Timelines(timeline_id) 
     FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)

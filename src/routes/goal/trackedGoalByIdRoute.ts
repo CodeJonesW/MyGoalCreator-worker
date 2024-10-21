@@ -26,8 +26,16 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 		return item.timeline_id === selectedTimeline.timeline_id;
 	});
 
+	const isLastStep = parseInt(step) === timelines.results.length - 1;
+
 	return new Response(
-		JSON.stringify({ goal_id: goal_id, timelineName: selectedTimeline.title, planItems: selectedTimeLinePlanItems, step: step }),
+		JSON.stringify({
+			goal_id: goal_id,
+			timelineName: selectedTimeline.title,
+			planItems: selectedTimeLinePlanItems,
+			step: step,
+			isLastStep: isLastStep,
+		}),
 		{
 			status: 200,
 			headers: { 'Content-Type': 'application/json' },

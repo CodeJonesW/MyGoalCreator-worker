@@ -32,8 +32,8 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 			level2Contents.forEach((item) => {
 				statements.push(
 					db
-						.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
-						.bind(planItemId, parentTimelineId, item, goalId)
+						.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)`)
+						.bind(planItemId, parentTimelineId, item, goalId, 'todo')
 				);
 				planItemId++;
 			});
@@ -55,8 +55,8 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 				items.forEach((item) => {
 					statements.push(
 						db
-							.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
-							.bind(planItemId, currentTimelineId, item, goalId)
+							.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)`)
+							.bind(planItemId, currentTimelineId, item, goalId, 'todo')
 					);
 					planItemId++;
 				});
