@@ -47,7 +47,7 @@ CREATE TABLE Timelines (
     timeline_id INTEGER PRIMARY KEY, 
     title VARCHAR(255) NOT NULL, 
     timeline_type TEXT NOT NULL, 
-    parent_id INTEGER, -- Optional parent ID for nested timelines
+    parent_id INTEGER,
     goal_id INTEGER, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (parent_id) REFERENCES Timelines(timeline_id) 
