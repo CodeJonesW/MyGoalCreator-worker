@@ -43,8 +43,8 @@ export const getGoalById = async (env: Env, goal_id: any) => {
 	return await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 };
 
-export const getSubGoalByGoalIdAndSubGoalName = async (env: Env, goal_id: any, sub_goal_name: any) => {
-	return await env.DB.prepare(`SELECT * FROM SubGoals WHERE goal_id = ? AND sub_goal_name = ?`).bind(goal_id, sub_goal_name).first();
+export const getGoalByParentGoalIdAndName = async (env: Env, goal_id: any, sub_goal_name: any) => {
+	return await env.DB.prepare(`SELECT * FROM Goals WHERE parent_goal_id = ? AND goal_name = ?`).bind(goal_id, sub_goal_name).first();
 };
 
 export const findUserGoalsWithSubgoals = async (env: Env, user_id: any) => {

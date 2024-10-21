@@ -13,10 +13,9 @@ export const deleteGoalByIdRoute = async (request: Request, env: Env): Promise<R
 		return errorResponse('Goal not found', 404);
 	}
 
-	await env.DB.prepare(`DELETE FROM SubGoals WHERE goal_id = ?`).bind(goal.goal_id).run();
+	await env.DB.prepare(`DELETE FROM Goals WHERE parent_goal_id = ?`).bind(goal.goal_id).run();
 
 	const trackedGoal = await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE goal_id = ?`).bind(goal.goal_id).first();
-
 	if (trackedGoal) {
 		await env.DB.prepare(`DELETE FROM TrackedGoals WHERE goal_id = ?`).bind(goal.goal_id).run();
 	}
