@@ -1,4 +1,4 @@
-import { Env, Goal, SubGoal, User } from '../types';
+import { Env, Goal, SubGoal, User } from '../../types';
 
 export const checkIfUserExistsByEmail = async (email: string, env: Env): Promise<null | User> => {
 	return await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
@@ -133,11 +133,11 @@ export const findGoalAndSubGoalsByGoalId = async (env: Env, goal_id: any) => {
 };
 
 export const getLatestTimelineId = async (env: Env) => {
-	const { results } = await env.DB.prepare(`SELECT MAX(id) as latest_id FROM Timelines`).all();
+	const { results } = await env.DB.prepare(`SELECT MAX(timeline_id) as latest_id FROM Timelines`).all();
 	return results[0].latest_id;
 };
 
 export const getLatestPlanItemId = async (env: Env) => {
-	const { results } = await env.DB.prepare(`SELECT MAX(id) as latest_id FROM PlanItems`).all();
+	const { results } = await env.DB.prepare(`SELECT MAX(plan_item_id) as latest_id FROM PlanItems`).all();
 	return results[0].latest_id;
 };

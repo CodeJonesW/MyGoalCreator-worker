@@ -21,7 +21,7 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 		timelineMap[level1Heading] = timelineId;
 		statements.push(
 			db
-				.prepare(`INSERT INTO Timelines (id, title, timeline_type, goal_id, parent_id) VALUES (?, ?, ?, ?, NULL)`)
+				.prepare(`INSERT INTO Timelines (timeline_id, title, timeline_type, goal_id, parent_id) VALUES (?, ?, ?, ?, NULL)`)
 				.bind(timelineId, level1Heading, timelineType, goalId)
 		);
 		const parentTimelineId = timelineId; // Store the parent timeline ID
@@ -32,7 +32,7 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 			level2Contents.forEach((item) => {
 				statements.push(
 					db
-						.prepare(`INSERT INTO PlanItems (id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
+						.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
 						.bind(planItemId, parentTimelineId, item, goalId)
 				);
 				planItemId++;
@@ -45,7 +45,7 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 				timelineMap[level2Heading] = timelineId;
 				statements.push(
 					db
-						.prepare(`INSERT INTO Timelines (id, title, timeline_type, parent_id, goal_id) VALUES (?, ?, ?, ?, ?)`)
+						.prepare(`INSERT INTO Timelines (timeline_id, title, timeline_type, parent_id, goal_id) VALUES (?, ?, ?, ?, ?)`)
 						.bind(timelineId, level2Heading, level2TimelineType, parentTimelineId, goalId)
 				);
 				const currentTimelineId = timelineId; // Store the current timeline ID for plan items
@@ -55,7 +55,7 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 				items.forEach((item) => {
 					statements.push(
 						db
-							.prepare(`INSERT INTO PlanItems (id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
+							.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id) VALUES (?, ?, ?, ?)`)
 							.bind(planItemId, currentTimelineId, item, goalId)
 					);
 					planItemId++;
