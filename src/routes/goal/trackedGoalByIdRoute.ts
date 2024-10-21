@@ -20,7 +20,10 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 	console.log('planItems', planItems);
 	console.log('timelines', timelines);
 
-	return new Response(JSON.stringify({ planItems: planItems.results }), {
+	const firstTimeline = timelines.results[0];
+	const firstTimelinePlanItems = planItems.results.filter((item) => item.timeline_id === firstTimeline.timeline_id);
+
+	return new Response(JSON.stringify({ planItems: firstTimelinePlanItems }), {
 		status: 200,
 		headers: { 'Content-Type': 'application/json' },
 	});
