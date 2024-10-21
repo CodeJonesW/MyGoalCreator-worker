@@ -6,3 +6,4 @@ export { registerRoute } from './account/registerRoute';
 export { trackGoalRoute } from './goal/trackGoalRoute';
 export { deleteGoalByIdRoute } from './goal/deleteGoalByIdRoute';
 export { createSubGoalRoute } from './goal/subGoalRoute';
+export { trackedGoalByIdRoute } from './goal/trackedGoalByIdRoute';

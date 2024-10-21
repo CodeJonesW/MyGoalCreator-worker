@@ -28,18 +28,21 @@ export const trackGoalRoute = async (request: Request, env: Env): Promise<Respon
 		}
 		const { success } = await env.DB.prepare(`INSERT INTO TrackedGoals (goal_id, user_id) VALUES (?, ?)`).bind(goal_id, user.user_id).run();
 		if (success) {
-			const parsed = parseGoalPlanHeadersAndContent(goal);
-			const latestTimelineId = await getLatestTimelineId(env);
-			const latestPlanItemId = await getLatestPlanItemId(env);
-			const statements = generatePreparedStatementsForTimelinesAndPlanItems(
-				env.DB,
-				parsed,
-				latestTimelineId as number,
-				latestPlanItemId as number,
-				goal.goal_id as number
-			);
-			await env.DB.batch(statements);
-			console.log('Batch execution completed successfully.');
+			const timeLineExists = await env.DB.prepare('SELECT * FROM TimelineItems WHERE goal_id = ?').bind(goal_id).first();
+			if (!timeLineExists) {
+				const parsed = parseGoalPlanHeadersAndContent(goal);
+				const latestTimelineId = await getLatestTimelineId(env);
+				const latestPlanItemId = await getLatestPlanItemId(env);
+				const statements = generatePreparedStatementsForTimelinesAndPlanItems(
+					env.DB,
+					parsed,
+					latestTimelineId as number,
+					latestPlanItemId as number,
+					goal.goal_id as number
+				);
+				await env.DB.batch(statements);
+				console.log('Batch execution completed successfully.');
+			}
 
 			return new Response(JSON.stringify({ message: 'User added successfully' }), {
 				status: 200,

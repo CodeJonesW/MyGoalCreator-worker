@@ -8,6 +8,7 @@ import {
 	profileRoute,
 	loginRoute,
 	deleteGoalByIdRoute,
+	trackedGoalByIdRoute,
 } from './routes';
 
 export default {
@@ -44,7 +45,12 @@ export default {
 		}
 
 		if (pathname === '/api/trackGoal') {
-			return await trackGoalRoute(request, env);
+			if (request.method === 'POST') {
+				return await trackGoalRoute(request, env);
+			}
+			if (request.method === 'GET') {
+				return await trackedGoalByIdRoute(request, env);
+			}
 		}
 
 		return new Response('Not found', { status: 404 });
