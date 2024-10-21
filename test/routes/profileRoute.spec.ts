@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach, Mock } from 'vitest';
 import { profileRoute } from '../../src/routes/account/profileRoute';
 import { Env } from '../../src/types';
 
@@ -15,6 +15,7 @@ describe('Profile Route', () => {
 		bind: vi.fn().mockReturnThis(),
 		first: vi.fn(),
 		all: vi.fn(),
+		run: vi.fn(),
 	};
 
 	const mockEnv: Env = {
@@ -73,8 +74,7 @@ describe('Profile Route', () => {
 	it('should return 200 and user data to include tracked goal', async () => {
 		const request = new Request('http://localhost/api/profile', { method: 'GET' });
 		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue({
+		(verifyToken as Mock).mockResolvedValue({
 			user: { user_id: 1, email: 'test@example.com' },
 		});
 		// mock user client data query
@@ -94,11 +94,17 @@ describe('Profile Route', () => {
 			aof: 'details',
 			timeline: '1 week',
 		});
-		// mock tracked goal query
-		mockPreparedStatement.first.mockResolvedValueOnce({
-			goal_id: 1,
-			user_id: 1,
+
+		// mock tracked goals query
+		mockPreparedStatement.all.mockResolvedValueOnce({
+			results: [
+				{
+					goal_id: 1,
+					user_id: 1,
+				},
+			],
 		});
+
 		mockPreparedStatement.all.mockResolvedValueOnce({
 			results: [
 				{
@@ -117,8 +123,8 @@ describe('Profile Route', () => {
 		// @ts-ignore
 		expect(result.goals[0].goal_name).toBe('Learn React');
 		// @ts-ignore
-		expect(result.trackedGoal.goal_id).toBe(1);
+		expect(result.trackedGoals[0].goal_id).toBe(1);
 		// @ts-ignore
-		expect(result.trackedGoal.user_id).toBe(1);
+		expect(result.trackedGoals[0].user_id).toBe(1);
 	});
 });

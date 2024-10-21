@@ -23,8 +23,8 @@ export const checkUserFirstLogin = async (env: Env, user_id: any) => {
 	return await env.DB.prepare(`SELECT * FROM Auth WHERE user_id = ?`).bind(user_id).all();
 };
 
-export const findUserTrackedGoal = async (env: Env, user_id: any) => {
-	return await env.DB.prepare(`SELECT goal_id FROM TrackedGoals WHERE user_id = ?`).bind(user_id).first();
+export const findUserTrackedGoals = async (env: Env, user_id: any) => {
+	return await env.DB.prepare(`SELECT * FROM TrackedGoals WHERE user_id = ?`).bind(user_id).all();
 };
 
 export const findUserRecentGoal = async (env: Env, user_id: any) => {
