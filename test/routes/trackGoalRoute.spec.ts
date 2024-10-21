@@ -149,6 +149,6 @@ describe('Track Goal Route', () => {
 		const result: SuccessResponse = await response.json();
 
 		expect(response.status).toBe(200);
-		expect(result.message).toBe('User added successfully');
+		expect(result.message).toBe('Goal tracked successfully');
 	});
 });
