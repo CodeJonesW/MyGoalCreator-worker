@@ -3,6 +3,7 @@ DROP TABLE IF EXISTS Timelines;
 DROP TABLE IF EXISTS TrackedGoals;
 DROP TABLE IF EXISTS SubGoals;
 DROP TABLE IF EXISTS Goals;
+-- DROP TABLE IF EXISTS Auth;
 -- DROP TABLE IF EXISTS Users;
 
 
@@ -50,22 +51,22 @@ CREATE TABLE IF NOT EXISTS Auth (
 );
 
 CREATE TABLE Timelines (
-    id INTEGER PRIMARY KEY, 
+    timeline_id INTEGER PRIMARY KEY, 
     title VARCHAR(255) NOT NULL, 
     timeline_type TEXT NOT NULL, 
     parent_id INTEGER, -- Optional parent ID for nested timelines
     goal_id INTEGER, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_id) REFERENCES Timelines(id) 
+    FOREIGN KEY (parent_id) REFERENCES Timelines(timeline_id) 
     FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );
 
 CREATE TABLE PlanItems (
-    id INTEGER PRIMARY KEY, 
+    plan_item_id INTEGER PRIMARY KEY, 
     timeline_id INTEGER NOT NULL, 
     goal_id INTEGER NOT NULL,
     description TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (timeline_id) REFERENCES Timelines(id) 
+    FOREIGN KEY (timeline_id) REFERENCES Timelines(timeline_id) 
     FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );
