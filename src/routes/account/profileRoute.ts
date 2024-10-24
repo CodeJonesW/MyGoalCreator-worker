@@ -36,7 +36,6 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 	if (userGoals.length > 0) {
 		userGoals.forEach((goal) => {
 			const isGoalTracked = trackedGoals.results.filter((trackedGoal) => trackedGoal.goal_id === goal.goal_id).length > 0;
-			// @ts-ignore
 			goal.isGoalTracked = isGoalTracked;
 		});
 	}

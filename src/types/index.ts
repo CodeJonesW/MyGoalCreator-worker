@@ -19,6 +19,7 @@ export type Goal = {
 	aof: string;
 	subgoals: Goal[];
 	parent_goal_id?: number;
+	isGoalTracked?: boolean;
 };
 
 export type ErrorResponse = {
