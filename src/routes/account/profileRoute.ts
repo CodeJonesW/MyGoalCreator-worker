@@ -4,7 +4,7 @@ import {
 	findUserTrackedGoals,
 	findUserRecentGoal,
 	findUserClientData,
-	findUserGoals,
+	findGoalsAndSubGoalsByUserId,
 } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
@@ -20,12 +20,12 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 		return errorResponse('User not found', 404);
 	}
 
-	const userGoals = await findUserGoals(env, user.user_id);
+	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
 	const auths = await checkUserFirstLogin(env, user.user_id);
 	const is_first_login = auths.results.length <= 1 ? true : false;
-	const showUiHelp = is_first_login && userGoals.results.length === 0;
+	const showUiHelp = is_first_login && userGoals.length === 0;
 
 	if (recentGoal) {
 		const recentGoalId = recentGoal.goal_id;
@@ -33,8 +33,8 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 		recentGoal.isGoalTracked = isRecentGoalTracked;
 	}
 
-	if (userGoals.results.length > 0) {
-		userGoals.results.forEach((goal) => {
+	if (userGoals.length > 0) {
+		userGoals.forEach((goal) => {
 			const isGoalTracked = trackedGoals.results.filter((trackedGoal) => trackedGoal.goal_id === goal.goal_id).length > 0;
 			goal.isGoalTracked = isGoalTracked;
 		});
@@ -42,7 +42,7 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 
 	const responseData = {
 		user: userFromDb,
-		goals: userGoals.results,
+		goals: userGoals,
 		recentGoal: recentGoal ? recentGoal : null,
 		trackedGoals: trackedGoals.results,
 		showUiHelp: showUiHelp,

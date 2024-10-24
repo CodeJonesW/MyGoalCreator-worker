@@ -1,4 +1,4 @@
-export { createGoalRoute } from './goal/createGoalRoute';
+export { createGoalRoute, streamGoalRoute } from './goal/createGoalRoute';
 export { goalByIdRoute } from './goal/goalByIdRoute';
 export { loginRoute } from './account/loginRoute';
 export { profileRoute } from './account/profileRoute';

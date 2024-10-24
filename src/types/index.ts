@@ -15,17 +15,11 @@ export type Goal = {
 	goal_id: number;
 	goal_name: string;
 	plan: string;
-	time_line: string;
+	timeline: string;
 	aof: string;
-	subgoals: SubGoal[];
-};
-
-export type SubGoal = {
-	sub_goal_id: number;
-	goal_id: number;
-	sub_goal_name: string;
-	line_number?: number;
-	sub_goal_plan?: string;
+	subgoals: Goal[];
+	parent_goal_id?: number;
+	isGoalTracked?: boolean;
 };
 
 export type ErrorResponse = {

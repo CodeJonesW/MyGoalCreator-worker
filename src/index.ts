@@ -5,19 +5,34 @@ import {
 	createSubGoalRoute,
 	goalByIdRoute,
 	createGoalRoute,
+	streamGoalRoute,
 	profileRoute,
 	loginRoute,
 	deleteGoalByIdRoute,
 	trackedGoalByIdRoute,
 } from './routes';
 import { updatePlanItemRoute } from './routes/goal/updatePlanItemRoute';
+import { streamSubGoalRoute } from './routes/goal/subGoalRoute';
 
 export default {
 	async fetch(request, env): Promise<Response> {
 		const { pathname } = new URL(request.url);
 
 		if (pathname === '/api/analyze') {
-			return await createGoalRoute(request, env);
+			return await streamGoalRoute(request, env);
+		}
+
+		if (pathname === '/api/createGoal') {
+			if (request.method === 'POST') {
+				return await createGoalRoute(request, env);
+			}
+		}
+
+		if (pathname === '/api/createSubGoal') {
+			return await createSubGoalRoute(request, env);
+		}
+		if (pathname === '/api/subgoal') {
+			return await streamSubGoalRoute(request, env);
 		}
 
 		if (pathname.startsWith('/api/goal')) {
@@ -39,10 +54,6 @@ export default {
 
 		if (pathname === '/api/register') {
 			return await registerRoute(request, env);
-		}
-
-		if (pathname === '/api/subgoal') {
-			return await createSubGoalRoute(request, env);
 		}
 
 		if (pathname === '/api/trackGoal') {

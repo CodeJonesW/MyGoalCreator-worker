@@ -10,11 +10,11 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 	goalId: number
 ): D1PreparedStatement[] => {
 	const statements: D1PreparedStatement[] = [];
-	let timelineId = startingTimelineId + 1; // Start with the given timeline ID
-	let planItemId = startingPlanItemId + 1; // Start with the given plan item ID
-	const timelineMap: { [key: string]: number } = {}; // Map for timeline ID lookups
+	let timelineId = startingTimelineId + 1;
+	let planItemId = startingPlanItemId + 1;
+	const timelineMap: { [key: string]: number } = {};
 
-	// Iterate through level 1 headings (e.g., "Week 1: Introduction to Rust")
+	// Iterate through level 1 headings
 	Object.entries(plan).forEach(([level1Heading, level2Contents]) => {
 		// Insert level 1 timeline
 		const timelineType = determineTimelineType(level1Heading);

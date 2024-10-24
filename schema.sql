@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS Goals (
     user_id INTEGER,
     goal_name TEXT,
     plan TEXT,
-    time_line TEXT,
+    timeline TEXT,
     aof TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     parent_goal_id INTEGER,
