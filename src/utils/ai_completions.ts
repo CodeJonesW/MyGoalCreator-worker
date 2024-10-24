@@ -91,14 +91,10 @@ export const streamGoal = async (env: Env, goal_id: string, goal: any, areaOfFoc
 	}
 };
 
-export const createSubGoal = async (env: Env, parent_goal: any, sub_goal_name: string) => {
+export const createSubGoal = async (env: Env, parent_goal: any, sub_goal_name: string, sub_goal_id: number) => {
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 	const { goal_name: parent_goal_name, plan: parent_plan, goal_id: parent_goal_id } = parent_goal;
-
-	const result = await env.DB.prepare(`INSERT INTO Goals (parent_goal_id, goal_name) VALUES (?, ?)`)
-		.bind(parent_goal_id, sub_goal_name)
-		.run();
 
 	const completion = await openai.chat.completions.create({
 		stream: true,
@@ -148,9 +144,7 @@ export const createSubGoal = async (env: Env, parent_goal: any, sub_goal_name: s
 				}
 
 				controller.enqueue(encoder.encode(`event: done\n\n`));
-				const updateResult = await env.DB.prepare(`UPDATE Goals SET plan = ? WHERE goal_id = ?`)
-					.bind(rawTotalResponse, result.meta.last_row_id)
-					.run();
+				const updateResult = await env.DB.prepare(`UPDATE Goals SET plan = ? WHERE goal_id = ?`).bind(rawTotalResponse, sub_goal_id).run();
 				controller.close();
 			},
 		});

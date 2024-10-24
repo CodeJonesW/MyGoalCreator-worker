@@ -83,53 +83,68 @@ export const findUserGoalsWithSubgoals = async (env: Env, user_id: any) => {
 	return Array.from(goalsMap.values());
 };
 
-export const findGoalAndSubGoalsByGoalId = async (env: Env, goal_id: any) => {
+export const findGoalsAndSubGoalsByUserId = async (env: Env, user_id: number) => {
 	const query = `
 		SELECT 
-			g.goal_id, 
-			g.goal_name, 
-			g.plan,
-			g.timeline,
-			g.aof,
-			sg.sub_goal_id, 
-			sg.sub_goal_name,
-			sg.plan as sub_goal_plan,
-			sg.line_number
+			g.goal_id AS parent_goal_id, 
+			g.goal_name AS parent_goal_name, 
+			g.plan AS parent_plan,
+			g.timeline AS parent_timeline,
+			g.aof AS parent_aof,
+			sg.goal_id AS sub_goal_id, 
+			sg.goal_name AS sub_goal_name,
+			sg.plan AS sub_goal_plan,
+			sg.timeline AS sub_goal_timeline,
+			sg.aof AS sub_goal_aof
 		FROM Goals g
-		LEFT JOIN SubGoals sg ON g.goal_id = sg.goal_id
-		WHERE g.goal_id = ?
-		ORDER BY sg.line_number;
+		LEFT JOIN Goals sg ON g.goal_id = sg.parent_goal_id
+		WHERE g.user_id = ? AND g.parent_goal_id IS NULL
+		ORDER BY g.goal_id;
 	`;
 
-	const goalWithSubGoals = await env.DB.prepare(query).bind(goal_id).all();
-	console.log('goalWithSubGoals', goalWithSubGoals);
+	const goalsWithSubGoals = await env.DB.prepare(query).bind(user_id).all();
+	console.log('goalsWithSubGoals', goalsWithSubGoals);
 
-	if (!goalWithSubGoals.results.length) {
-		return null;
+	if (!goalsWithSubGoals.results.length) {
+		return [];
 	}
 
-	const goal: Goal = {
-		goal_id: goalWithSubGoals.results[0].goal_id as number,
-		goal_name: goalWithSubGoals.results[0].goal_name as string,
-		plan: goalWithSubGoals.results[0].plan as string,
-		timeline: goalWithSubGoals.results[0].timeline as string,
-		aof: goalWithSubGoals.results[0].aof as string,
-		subgoals: [] as SubGoal[],
-	};
+	// Group goals and their respective subgoals
+	const goalsMap = new Map<number, Goal>();
 
-	goalWithSubGoals.results.forEach((row) => {
+	goalsWithSubGoals.results.forEach((row) => {
+		const parentGoalId = row.parent_goal_id as number;
+
+		// If the goal is not in the map, add it
+		if (!goalsMap.has(parentGoalId)) {
+			goalsMap.set(parentGoalId, {
+				goal_id: parentGoalId,
+				goal_name: row.parent_goal_name as string,
+				plan: row.parent_plan as string,
+				timeline: row.parent_timeline as string,
+				aof: row.parent_aof as string,
+				subgoals: [] as SubGoal[],
+			});
+		}
+
+		// If there is a subgoal, add it to the goal's subgoals list
 		if (row.sub_goal_id) {
-			goal.subgoals.push({
-				goal_id: row.goal_id as number,
-				sub_goal_id: row.sub_goal_id as number,
-				sub_goal_name: row.sub_goal_name as string,
-				sub_goal_plan: row.sub_goal_plan as string,
-				line_number: row.line_number as number,
+			// @ts-ignore
+			goalsMap.get(parentGoalId)?.subgoals.push({
+				parent_goal_id: parentGoalId,
+				goal_id: row.sub_goal_id as number,
+				goal_name: row.sub_goal_name as string,
+				plan: row.sub_goal_plan as string,
+				timeline: row.sub_goal_timeline as string,
+				aof: row.sub_goal_aof as string,
 			});
 		}
 	});
 
-	return goal;
+	// Convert the map to an array of Goal objects
+	const goals = Array.from(goalsMap.values());
+
+	return goals;
 };
 
 export const getLatestTimelineId = async (env: Env) => {
