@@ -5,6 +5,7 @@ import {
 	createSubGoalRoute,
 	goalByIdRoute,
 	createGoalRoute,
+	streamGoalRoute,
 	profileRoute,
 	loginRoute,
 	deleteGoalByIdRoute,
@@ -17,7 +18,14 @@ export default {
 		const { pathname } = new URL(request.url);
 
 		if (pathname === '/api/analyze') {
-			return await createGoalRoute(request, env);
+			return await streamGoalRoute(request, env);
+		}
+
+		if (pathname === '/api/createGoal') {
+			console.log('createGoal path');
+			if (request.method === 'POST') {
+				return await createGoalRoute(request, env);
+			}
 		}
 
 		if (pathname.startsWith('/api/goal')) {

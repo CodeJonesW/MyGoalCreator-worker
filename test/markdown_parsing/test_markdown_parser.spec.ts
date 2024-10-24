@@ -28,7 +28,7 @@ describe('markdown parser', () => {
 			goal_id: goal_id,
 			goal_name: 'learn rust',
 			plan: markdown_plan_1,
-			time_line: '1 month',
+			timeline: '1 month',
 			aof: '',
 		};
 		const data = parseGoalPlanHeadersAndContent(goal);
@@ -91,7 +91,7 @@ describe('markdown parser', () => {
 			goal_id: goal_id,
 			goal_name: 'learn rust',
 			plan: markdown_plan_1,
-			time_line: '1 month',
+			timeline: '1 month',
 			aof: '',
 		};
 		const data = parseGoalPlanHeadersAndContentV2(goal);

@@ -76,7 +76,7 @@ describe('Goal By Id Route', () => {
 		const mockGoal = {
 			goal_name: 'Learn TypeScript',
 			plan: 'Step 1: Understand basics. Step 2: Write code.',
-			time_line: '3 months',
+			timeline: '3 months',
 		};
 		// @ts-ignore
 		mockEnv.DB.first.mockResolvedValueOnce(mockGoal); // Simulate goal found

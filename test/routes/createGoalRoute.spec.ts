@@ -100,7 +100,7 @@ describe('Analyze Route', () => {
 		expect(text).toContain('Test chunk part 2');
 
 		// Verify that the goal got inserted into the database with the correct values
-		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('INSERT INTO Goals (user_id, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)');
+		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('INSERT INTO Goals (user_id, goal_name, plan, timeline, aof) VALUES (?, ?, ?, ?, ?)');
 		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1, 'Test goal', expect.any(String), '1 week', expect.any(String));
 		expect(mockPreparedStatement.run).toHaveBeenCalledTimes(2); // One for inserting the goal and one for updating analyze requests
 		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?');

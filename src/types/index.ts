@@ -15,7 +15,7 @@ export type Goal = {
 	goal_id: number;
 	goal_name: string;
 	plan: string;
-	time_line: string;
+	timeline: string;
 	aof: string;
 	subgoals: SubGoal[];
 };

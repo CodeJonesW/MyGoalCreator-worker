@@ -9,7 +9,7 @@ const markdownPrompt = `Please format your response in valid Markdown, adhering 
 				- Do not bold or italicize text.
 				Ensure the Markdown is clean and easy to copy into any Markdown editor.`;
 
-export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline: any, user: any) => {
+export const streamGoal = async (env: Env, goal_id: string, goal: any, areaOfFocus: any, timeline: any, user: any) => {
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 	const aof = areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '';
 	const completion = await openai.chat.completions.create({
@@ -74,8 +74,8 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 
 				try {
 					await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?`).bind(user.user_id).run();
-					await env.DB.prepare(`INSERT INTO Goals (user_id, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
-						.bind(user.user_id, goal, totalFormattedResponse, timeline, aof)
+					await env.DB.prepare(`UPDATE Goals SET plan = ?, timeline = ?, aof = ? WHERE goal_id = ?`)
+						.bind(totalFormattedResponse, timeline, aof, goal_id)
 						.run();
 				} catch (error) {
 					console.log('Error saving goal:', error);

@@ -18,6 +18,10 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 		return errorResponse('Goal not found', 404);
 	}
 
+	if (goal.user_id !== authResponse.user.user_id) {
+		return errorResponse('Unauthorized', 401);
+	}
+
 	const planItems = await env.DB.prepare(`SELECT * FROM PlanItems WHERE goal_id = ?`).bind(goal_id).all();
 	const timelines = await env.DB.prepare(`SELECT * FROM Timelines WHERE goal_id = ?`).bind(goal_id).all();
 
@@ -30,6 +34,7 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 
 	return new Response(
 		JSON.stringify({
+			goal_name: goal.goal_name,
 			goal_id: goal_id,
 			timelineName: selectedTimeline.title,
 			planItems: selectedTimeLinePlanItems,

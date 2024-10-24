@@ -89,7 +89,7 @@ export const findGoalAndSubGoalsByGoalId = async (env: Env, goal_id: any) => {
 			g.goal_id, 
 			g.goal_name, 
 			g.plan,
-			g.time_line,
+			g.timeline,
 			g.aof,
 			sg.sub_goal_id, 
 			sg.sub_goal_name,
@@ -112,7 +112,7 @@ export const findGoalAndSubGoalsByGoalId = async (env: Env, goal_id: any) => {
 		goal_id: goalWithSubGoals.results[0].goal_id as number,
 		goal_name: goalWithSubGoals.results[0].goal_name as string,
 		plan: goalWithSubGoals.results[0].plan as string,
-		time_line: goalWithSubGoals.results[0].time_line as string,
+		timeline: goalWithSubGoals.results[0].timeline as string,
 		aof: goalWithSubGoals.results[0].aof as string,
 		subgoals: [] as SubGoal[],
 	};
