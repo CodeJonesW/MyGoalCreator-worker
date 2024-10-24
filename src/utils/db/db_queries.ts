@@ -1,4 +1,4 @@
-import { Env, Goal, SubGoal, User } from '../../types';
+import { Env, Goal, User } from '../../types';
 
 export const checkIfUserExistsByEmail = async (email: string, env: Env): Promise<null | User> => {
 	return await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
@@ -123,7 +123,7 @@ export const findGoalsAndSubGoalsByUserId = async (env: Env, user_id: number) =>
 				plan: row.parent_plan as string,
 				timeline: row.parent_timeline as string,
 				aof: row.parent_aof as string,
-				subgoals: [] as SubGoal[],
+				subgoals: [] as Goal[],
 			});
 		}
 
