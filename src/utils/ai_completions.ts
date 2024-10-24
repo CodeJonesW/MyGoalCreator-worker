@@ -11,6 +11,7 @@ const markdownPrompt = `Please format your response in valid Markdown, adhering 
 
 export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline: any, user: any) => {
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
+	const aof = areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '';
 	const completion = await openai.chat.completions.create({
 		stream: true,
 		messages: [
@@ -18,7 +19,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 				role: 'system',
 				content: `You are an expert in the field of ${goal}`,
 			},
-			{ role: 'user', content: `My goal is to ${goal}. ${areaOfFocus ? `My areas of focus are ${areaOfFocus}` : ''}` },
+			{ role: 'user', content: `My goal is to ${goal}. ${aof}` },
 			{
 				role: 'system',
 				content: `You are passionate about explaining sub points of the goal in detail`,
@@ -74,7 +75,7 @@ export const createGoal = async (env: Env, goal: any, areaOfFocus: any, timeline
 				try {
 					await env.DB.prepare(`UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?`).bind(user.user_id).run();
 					await env.DB.prepare(`INSERT INTO Goals (user_id, goal_name, plan, time_line, aof) VALUES (?, ?, ?, ?, ?)`)
-						.bind(user.user_id, goal, totalFormattedResponse, timeline, areaOfFocus ? `My areas of focus are ${areaOfFocus}` : '')
+						.bind(user.user_id, goal, totalFormattedResponse, timeline, aof)
 						.run();
 				} catch (error) {
 					console.log('Error saving goal:', error);
