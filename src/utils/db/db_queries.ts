@@ -91,11 +91,13 @@ export const findGoalsAndSubGoalsByUserId = async (env: Env, user_id: number) =>
 			g.plan AS parent_plan,
 			g.timeline AS parent_timeline,
 			g.aof AS parent_aof,
+			g.depth AS parent_depth,
 			sg.goal_id AS sub_goal_id, 
 			sg.goal_name AS sub_goal_name,
 			sg.plan AS sub_goal_plan,
 			sg.timeline AS sub_goal_timeline,
-			sg.aof AS sub_goal_aof
+			sg.aof AS sub_goal_aof,
+			sg.depth AS depth
 		FROM Goals g
 		LEFT JOIN Goals sg ON g.goal_id = sg.parent_goal_id
 		WHERE g.user_id = ? AND g.parent_goal_id IS NULL
@@ -124,6 +126,7 @@ export const findGoalsAndSubGoalsByUserId = async (env: Env, user_id: number) =>
 				timeline: row.parent_timeline as string,
 				aof: row.parent_aof as string,
 				subgoals: [] as Goal[],
+				depth: row.parent_depth as number,
 			});
 		}
 
@@ -137,6 +140,7 @@ export const findGoalsAndSubGoalsByUserId = async (env: Env, user_id: number) =>
 				plan: row.sub_goal_plan as string,
 				timeline: row.sub_goal_timeline as string,
 				aof: row.sub_goal_aof as string,
+				depth: row.depth as number,
 			});
 		}
 	});

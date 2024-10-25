@@ -30,6 +30,7 @@ describe('markdown parser', () => {
 			plan: markdown_plan_1,
 			timeline: '1 month',
 			aof: '',
+			depth: 0,
 		};
 		const data = parseGoalPlanHeadersAndContent(goal);
 
@@ -93,6 +94,7 @@ describe('markdown parser', () => {
 			plan: markdown_plan_1,
 			timeline: '1 month',
 			aof: '',
+			depth: 0,
 		};
 		const data = parseGoalPlanHeadersAndContentV2(goal);
 		console.log(data);

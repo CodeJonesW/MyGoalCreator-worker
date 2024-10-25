@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS Goals (
     plan TEXT,
     timeline TEXT,
     aof TEXT,
+    depth INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
     parent_goal_id INTEGER,
     FOREIGN KEY(parent_goal_id) REFERENCES Goals(goal_id),
