@@ -20,7 +20,8 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 		return errorResponse('User not found', 404);
 	}
 
-	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id);
+	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
+	console.log('User goals', userGoals);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
 	const auths = await checkUserFirstLogin(env, user.user_id);

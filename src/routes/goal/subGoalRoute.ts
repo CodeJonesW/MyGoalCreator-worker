@@ -2,6 +2,7 @@ import { Env } from '../../types';
 import { createSubGoal } from '../../utils/ai_completions';
 import { getGoalById, getGoalByParentGoalIdAndName } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
+import { Goal } from '../../types';
 
 export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
@@ -21,6 +22,10 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 		return errorResponse('Goal not found', 404);
 	}
 
+	if ((parent_goal.depth as number) >= 4) {
+		return errorResponse('Sub goal depth exceeded', 400);
+	}
+
 	const subGoal = await getGoalByParentGoalIdAndName(env, parent_goal_id, sub_goal_name);
 	if (subGoal) {
 		return new Response(JSON.stringify({ message: 'success', goal_id: subGoal.goal_id, existed: true }), {
@@ -29,8 +34,14 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 		});
 	}
 
-	const { results } = await env.DB.prepare(`INSERT INTO Goals (parent_goal_id, goal_name, user_id) VALUES (?, ?, ?) RETURNING goal_id`)
-		.bind(parent_goal_id, sub_goal_name, user.user_id)
+	const { results } = await env.DB.prepare(
+		`
+		INSERT INTO Goals (parent_goal_id, goal_name, user_id, depth)
+		VALUES (?, ?, ?, COALESCE((SELECT depth + 1 FROM Goals WHERE goal_id = ?), 0))
+		RETURNING goal_id
+	  `
+	)
+		.bind(parent_goal_id, sub_goal_name, user.user_id, parent_goal_id)
 		.run();
 
 	const goal_id = results[0].goal_id as string;

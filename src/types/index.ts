@@ -20,6 +20,7 @@ export type Goal = {
 	subgoals: Goal[];
 	parent_goal_id?: number;
 	isGoalTracked?: boolean;
+	depth: number;
 };
 
 export type ErrorResponse = {
