@@ -108,7 +108,6 @@ export const findGoalsAndSubGoalsByUserId = async (env: Env, user_id: number, pa
 		return goalsWithSubGoals;
 	}
 
-	// Iterate over the fetched goals
 	for (const row of goalsResult.results) {
 		const goal: Goal = {
 			goal_id: row.goal_id as number,
@@ -120,10 +119,8 @@ export const findGoalsAndSubGoalsByUserId = async (env: Env, user_id: number, pa
 			depth: row.depth as number,
 		};
 
-		// Recursively get the subgoals for the current goal
 		goal.subgoals = await findGoalsAndSubGoalsByUserId(env, user_id, goal.goal_id);
 
-		// Add the goal with its subgoals to the list
 		goalsWithSubGoals.push(goal);
 	}
 
