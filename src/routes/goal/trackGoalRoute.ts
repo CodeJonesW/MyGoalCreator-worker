@@ -3,11 +3,14 @@ import { parseGoalPlanHeadersAndContent } from '../../utils/md_parser';
 import { generatePreparedStatementsForTimelinesAndPlanItems } from '../../utils/db/query_gen';
 import { getLatestPlanItemId, getLatestTimelineId } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
+import { Context } from 'hono';
 
-export const trackGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+export const trackGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	const { getGoalById } = await import('../../utils/db/db_queries');
-	const authResponse = await verifyToken(request, env);
+	const { req: request, env } = context;
+
+	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
 	const user = authResponse.user;
 

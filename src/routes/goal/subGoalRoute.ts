@@ -3,10 +3,15 @@ import { createSubGoal } from '../../utils/ai_completions';
 import { getGoalById, getGoalByParentGoalIdAndName } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 import { Goal } from '../../types';
+import { Context } from 'hono';
 
-export const createSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+export const createSubGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
-	const authResponse = await verifyToken(request, env);
+	const { req: request, env } = context;
+
+	const authResponse = await verifyToken(request.raw, env);
+	console.log('authResponse', authResponse);
+
 	if (authResponse instanceof Response) return authResponse;
 
 	const user = authResponse.user;
@@ -34,6 +39,8 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 		});
 	}
 
+	console.log('Creating sub goal', parent_goal_id, sub_goal_name, user.user_id);
+
 	const { results } = await env.DB.prepare(
 		`
 		INSERT INTO Goals (parent_goal_id, goal_name, user_id, depth)
@@ -52,9 +59,11 @@ export const createSubGoalRoute = async (request: Request, env: Env): Promise<Re
 	});
 };
 
-export const streamSubGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+export const streamSubGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
-	const authResponse = await verifyToken(request, env);
+	const { req: request, env } = context;
+
+	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
 
 	const { goal_id }: any = await request.json();

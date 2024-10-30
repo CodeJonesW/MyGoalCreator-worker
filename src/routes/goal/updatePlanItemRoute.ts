@@ -1,9 +1,11 @@
+import { Context } from 'hono';
 import { Env } from '../../types';
 import { verifyToken } from '../../utils/auth';
 import { errorResponse } from '../../utils/response_utils';
 
-export const updatePlanItemRoute = async (request: Request, env: Env): Promise<Response> => {
-	const authResponse = await verifyToken(request, env);
+export const updatePlanItemRoute = async (context: Context): Promise<Response> => {
+	const { req: request, env } = context;
+	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
 	const { plan_item_id, status }: any = await request.json();
 

@@ -1,3 +1,4 @@
+import { Context } from 'hono';
 import { Env } from '../../types';
 import {
 	checkUserFirstLogin,
@@ -8,9 +9,11 @@ import {
 } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
-export const profileRoute = async (request: Request, env: Env): Promise<Response> => {
+export const profileRoute = async (context: Context): Promise<Response> => {
+	const { req: request, env } = context;
+
 	const { verifyToken } = await import('../../utils/auth');
-	const authResponse = await verifyToken(request, env);
+	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
 
 	const user = authResponse.user;

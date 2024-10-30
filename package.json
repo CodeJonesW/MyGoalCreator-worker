@@ -11,7 +11,7 @@
 	},
 	"devDependencies": {
 		"@cloudflare/vitest-pool-workers": "^0.5.2",
-		"@cloudflare/workers-types": "^4.20240925.0",
+		"@cloudflare/workers-types": "^4.20241022.0",
 		"@types/bcrypt": "^5.0.2",
 		"@types/bcryptjs": "^2.4.6",
 		"@types/jsdom": "^21.1.7",
@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@mozilla/readability": "^0.5.0",
 		"bcryptjs": "^2.4.3",
+		"hono": "^4.6.8",
 		"htmlparser2": "^9.1.0",
 		"openai": "^4.66.1",
 		"xmldom": "^0.6.0"

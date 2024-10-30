@@ -2,10 +2,15 @@ import bcrypt from 'bcryptjs';
 import { checkIfUserExistsByEmail } from '../../utils/db/db_queries';
 import { Env } from '../../types';
 import { errorResponse } from '../../utils/response_utils';
+import { Context } from 'hono';
 
-export const registerRoute = async (request: Request, env: Env): Promise<Response> => {
-	const email = request.headers.get('x-email');
-	const password = request.headers.get('x-password');
+export const registerRoute = async (context: Context): Promise<Response> => {
+	const { req: request, env } = context;
+
+	const email = request.header('x-email');
+	const password = request.header('x-password');
+	console.log('email', email);
+	console.log('password', password);
 
 	if (!email || !password) {
 		return errorResponse('Missing email or password', 400);

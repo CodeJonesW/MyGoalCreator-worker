@@ -1,10 +1,13 @@
 import { verifyToken } from '../../utils/auth';
 import { Env } from '../../types';
 import { errorResponse } from '../../utils/response_utils';
+import { Context } from 'hono';
 
-export const deleteGoalByIdRoute = async (request: Request, env: Env): Promise<Response> => {
+export const deleteGoalByIdRoute = async (context: Context): Promise<Response> => {
 	try {
-		const authResponse = await verifyToken(request, env);
+		const { req: request, env } = context;
+
+		const authResponse = await verifyToken(request.raw, env);
 		if (authResponse instanceof Response) return authResponse;
 
 		const { goal_id }: any = await request.json();
