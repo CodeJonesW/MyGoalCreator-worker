@@ -10,7 +10,7 @@ vi.mock('../../src/utils/auth', () => ({
 }));
 
 vi.mock('openai', async (importOriginal) => {
-	const actual = await importOriginal(); // Get the actual module
+	const actual = await importOriginal();
 
 	return {
 		// @ts-ignore
@@ -120,7 +120,6 @@ describe('Analyze Route', () => {
 
 		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
 		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(true);
-
 		mockPreparedStatement.first.mockResolvedValueOnce({
 			analyze_requests: 5,
 		});
