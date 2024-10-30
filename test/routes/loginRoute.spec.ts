@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, Mock } from 'vitest';
 import { loginRoute } from '../../src/routes/account/loginRoute'; // Adjust the path as needed
-import { Env } from '../../src/types';
+import { Env, ErrorResponse } from '../../src/types';
+import { createMockContext, HonoEnv, mockPreparedStatement } from '../testUtils.ts/testTypes';
 
 // Mock the bcryptjs and jsonwebtoken modules globally
 vi.mock('bcryptjs', () => ({
@@ -12,16 +13,24 @@ vi.mock('jsonwebtoken', () => ({
 }));
 
 describe('Login Route', () => {
+	const mockPreparedStatement = {
+		bind: vi.fn().mockReturnThis(),
+		first: vi.fn(),
+		all: vi.fn(),
+		run: vi.fn(),
+	};
+
 	const mockEnv: Env = {
 		DB: {
-			prepare: vi.fn().mockReturnThis(),
-			bind: vi.fn().mockReturnThis(),
-			first: vi.fn(),
-			run: vi.fn(),
+			prepare: vi.fn(() => mockPreparedStatement),
+			dump: vi.fn(),
+			batch: vi.fn(),
+			exec: vi.fn(),
 		} as any,
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
+	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should return 401 if password is invalid', async () => {
 		const request = new Request('http://localhost/api/login', {
@@ -32,23 +41,19 @@ describe('Login Route', () => {
 			}),
 		});
 
-		// Simulate user found in DB
-		// @ts-ignore
-		mockEnv.DB.first = vi.fn().mockResolvedValue({
+		mockPreparedStatement.first.mockResolvedValue({
 			email: 'test@example.com',
 			user_password: 'hashedpassword',
 		});
 
-		// Simulate bcrypt.compare returning false (invalid password)
 		const bcrypt = await import('bcryptjs');
-		// @ts-ignore
-		bcrypt.compare.mockResolvedValue(false); // Mock the comparison result
+		(bcrypt.compare as Mock).mockResolvedValue(false);
 
-		const response = await loginRoute(request, mockEnv);
-		const result = await response.json();
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await loginRoute(mockContext);
+		const result: ErrorResponse = await response.json();
 
 		expect(response.status).toBe(401);
-		// @ts-ignore
 		expect(result.error).toBe('Invalid password');
 	});
 
@@ -61,26 +66,21 @@ describe('Login Route', () => {
 			}),
 		});
 
-		// Mock user found in DB
-		// @ts-ignore
-		mockEnv.DB.first = vi.fn().mockResolvedValue({
+		mockPreparedStatement.first.mockResolvedValue({
 			email: 'test@example.com',
 			user_password: 'hashedpassword',
-			user_id: 1,
 		});
 
-		// Mock bcrypt.compare returning true (valid password)
 		const bcrypt = await import('bcryptjs');
-		// @ts-ignore
-		bcrypt.compare.mockResolvedValue(true);
+		(bcrypt.compare as Mock).mockResolvedValue(true);
 
-		// Mock jwt.sign returning a fake token
 		const jwt = await import('jsonwebtoken');
-		// @ts-ignore
-		jwt.sign.mockReturnValue('fake-jwt-token');
+		(jwt.sign as Mock).mockReturnValue('fake-jwt-token');
 
-		const response = await loginRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await loginRoute(mockContext);
 		const result = await response.json();
+		console.log('result', result);
 
 		expect(response.status).toBe(200);
 		// @ts-ignore

@@ -4,7 +4,8 @@ import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '
 import { errorResponse } from '../../utils/response_utils';
 
 export const loginRoute = async (context: Context): Promise<Response> => {
-	const { req: request, env } = context;
+	const { req: request, env: contextEnv } = context;
+	const { env } = contextEnv.Bindings;
 
 	const email = request.header('x-email');
 	const password = request.header('x-password');
@@ -12,7 +13,6 @@ export const loginRoute = async (context: Context): Promise<Response> => {
 	if (!email || !password) {
 		return errorResponse('Missing email or password', 400);
 	}
-
 	const user = await checkIfUserExistsByEmail(email, env);
 	if (!user) {
 		return errorResponse('User not found', 404);
