@@ -10,9 +10,9 @@ import {
 	loginRoute,
 	deleteGoalByIdRoute,
 	trackedGoalByIdRoute,
+	updatePlanItemRoute,
+	streamSubGoalRoute,
 } from './routes';
-import { updatePlanItemRoute } from './routes/goal/updatePlanItemRoute';
-import { streamSubGoalRoute } from './routes/goal/subGoalRoute';
 import { Hono } from 'hono';
 
 const app = new Hono<{ Bindings: Env }>();

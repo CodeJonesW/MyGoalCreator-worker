@@ -7,3 +7,5 @@ export { trackGoalRoute } from './goal/trackGoalRoute';
 export { deleteGoalByIdRoute } from './goal/deleteGoalByIdRoute';
 export { createSubGoalRoute } from './goal/subGoalRoute';
 export { trackedGoalByIdRoute } from './goal/trackedGoalByIdRoute';
+export { updatePlanItemRoute } from './goal/updatePlanItemRoute';
+export { streamSubGoalRoute } from './goal/subGoalRoute';
