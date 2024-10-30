@@ -1,6 +1,9 @@
 import { describe, it, expect, vi, Mock } from 'vitest';
 import { createGoalRoute } from '../../src/routes/goal/createGoalRoute';
-import { Env } from '../../src/types';
+import { Env, ErrorResponse } from '../../src/types';
+import { Context, HonoRequest } from 'hono';
+import { JSONValue } from 'hono/utils/types';
+import { StatusCode } from 'hono/utils/http-status';
 
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
@@ -49,35 +52,44 @@ describe('Analyze Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
+	type MockEnv = { Bindings: Record<string, any> };
+	const mockEnv2: MockEnv = { Bindings: { env: mockEnv } };
+
+	function createMockContext(request: Request, env: MockEnv): Context<MockEnv> {
+		return {
+			req: request,
+			env,
+			finalized: false,
+			error: undefined,
+
+			json: <T extends JSONValue>(obj: T, status: StatusCode = 200) =>
+				new Response(JSON.stringify(obj), { status, headers: { 'Content-Type': 'application/json' } }),
+
+			text: (text: string, status: StatusCode = 200) => new Response(text, { status, headers: { 'Content-Type': 'text/plain' } }),
+
+			body: (data: string | ArrayBuffer | ReadableStream, status: StatusCode = 200) => new Response(data, { status }),
+
+			header: vi.fn(),
+			status: vi.fn(),
+
+			set: vi.fn(),
+			get: vi.fn(),
+			var: {} as any,
+
+			newResponse: (data: string | ArrayBuffer | ReadableStream | null, status: StatusCode = 200) => new Response(data, { status }),
+
+			html: (html: string, status: StatusCode = 200) => new Response(html, { status, headers: { 'Content-Type': 'text/html' } }),
+
+			redirect: (location: string, status: StatusCode = 302) => new Response(null, { status, headers: { Location: location } }),
+
+			notFound: () => new Response('Not Found', { status: 404 }),
+		} as unknown as Context<MockEnv>;
+	}
 
 	it('should return 400 if there are no analyze requests left', async () => {
 		const request = new Request('http://localhost/api/analyze', {
 			method: 'POST',
-			body: JSON.stringify({ goal: 'Test goal' }), // Include a valid goal in the request body
-		});
-
-		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue({
-			user: { user_id: 1 },
-		});
-
-		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
-		// @ts-ignore
-		checkIfUserHasAnalyzeRequests.mockResolvedValue(false); // Simulate no analyze requests left
-
-		const response = await createGoalRoute(request, mockEnv);
-		const result = await response.json();
-
-		expect(response.status).toBe(400);
-		// @ts-ignore
-		expect(result.error).toBe('No analyze requests left');
-	});
-
-	it('should return 200, stream the response, and properly update the database', async () => {
-		const request = new Request('http://localhost/api/analyze', {
-			method: 'POST',
-			body: JSON.stringify({ goal: 'Test goal', timeline: '1 week' }),
+			body: JSON.stringify({ goal: 'Test goal' }),
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
@@ -86,24 +98,44 @@ describe('Analyze Route', () => {
 		});
 
 		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
-		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(true); // Simulate that the user has analyze requests
+		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(false);
+		const mockContext = createMockContext(request, mockEnv2);
+		const response = await createGoalRoute(mockContext);
+		const result: ErrorResponse = await response.json();
+
+		expect(response.status).toBe(400);
+		expect(result.error).toBe('No analyze requests left');
+	});
+
+	it('should insert a new goal into db and return a 200', async () => {
+		const request = new Request('http://localhost/api/analyze', {
+			method: 'POST',
+			body: JSON.stringify({ goal_name: 'Learn algebra', area_of_focus: 'Learn division', timeline: '1 week' }),
+		});
+
+		const { verifyToken } = await import('../../src/utils/auth');
+		(verifyToken as Mock).mockResolvedValue({
+			user: { user_id: 1 },
+		});
+
+		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
+		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(true);
+
 		mockPreparedStatement.first.mockResolvedValueOnce({
 			analyze_requests: 5,
 		});
 
-		const response = await createGoalRoute(request, mockEnv);
+		mockPreparedStatement.run.mockResolvedValue({ success: true, results: [{ goal_id: '1' }] });
+		const mockContext = createMockContext(request, mockEnv2);
+		const response = await createGoalRoute(mockContext);
 		const text = await response.text();
 		console.log(text);
 
 		expect(response.status).toBe(200);
-		expect(text).toContain('Test chunk part 1');
-		expect(text).toContain('Test chunk part 2');
 
-		// Verify that the goal got inserted into the database with the correct values
-		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('INSERT INTO Goals (user_id, goal_name, plan, timeline, aof) VALUES (?, ?, ?, ?, ?)');
-		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1, 'Test goal', expect.any(String), '1 week', expect.any(String));
-		expect(mockPreparedStatement.run).toHaveBeenCalledTimes(2); // One for inserting the goal and one for updating analyze requests
-		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?');
-		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1); // user_id
+		expect(mockEnv.DB.prepare).toHaveBeenCalledWith(
+			'INSERT INTO Goals (user_id, goal_name, aof, timeline) VALUES (?, ?, ?, ?) RETURNING goal_id'
+		);
+		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1, 'Learn algebra', 'Learn division', '1 week');
 	});
 });

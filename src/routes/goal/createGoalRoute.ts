@@ -7,7 +7,9 @@ export const createGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db/db_queries');
 	try {
-		const { req: request, env } = context;
+		const { req: request, env: contextEnv } = context;
+		const { env } = contextEnv.Bindings;
+
 		const authResponse = await verifyToken(request.raw, env);
 		if (authResponse instanceof Response) return authResponse;
 
@@ -16,8 +18,6 @@ export const createGoalRoute = async (context: Context): Promise<Response> => {
 		if (!hasAnalyzeRequests) {
 			return errorResponse('No analyze requests left', 400);
 		}
-		console.log('Request body', request.parseBody());
-
 		const { goal_name, area_of_focus, timeline }: any = await request.json();
 
 		if (!goal_name) {
