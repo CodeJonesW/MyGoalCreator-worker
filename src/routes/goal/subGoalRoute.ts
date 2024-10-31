@@ -37,8 +37,6 @@ export const createSubGoalRoute = async (context: Context): Promise<Response> =>
 		});
 	}
 
-	console.log('Creating sub goal', parent_goal_id, sub_goal_name, user.user_id);
-
 	const { results } = await env.DB.prepare(
 		`
 		INSERT INTO Goals (parent_goal_id, goal_name, user_id, depth)
