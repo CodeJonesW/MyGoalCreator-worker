@@ -7,10 +7,6 @@ vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
 }));
 
-// vi.mock('../../src/utils/db/db_queries', () => ({
-// 	checkIfUserHasAnalyzeRequests: vi.fn(),
-// }));
-
 vi.mock('openai', async (importOriginal) => {
 	const actual = await importOriginal();
 
