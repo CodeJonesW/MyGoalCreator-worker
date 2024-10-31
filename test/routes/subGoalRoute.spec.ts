@@ -1,6 +1,7 @@
 import { createSubGoalRoute } from '../../src/routes/goal/subGoalRoute';
 import { describe, it, expect, vi, Mock } from 'vitest';
 import { Env, ErrorResponse } from '../../src/types';
+import { createMockContext, HonoEnv } from '../testUtils.ts/testTypes';
 
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
@@ -36,6 +37,7 @@ const mockEnv: Env = {
 	JWT_SECRET: 'test-secret',
 	OPENAI_API_KEY: 'fake-api-key',
 };
+const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 describe('createSubGoalRoute', () => {
 	it('should return 401 if token verification fails', async () => {
@@ -50,7 +52,8 @@ describe('createSubGoalRoute', () => {
 			method: 'POST',
 			body: '{}',
 		});
-		const response = await createSubGoalRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await createSubGoalRoute(mockContext);
 
 		expect(response.status).toBe(401);
 	});
@@ -65,9 +68,10 @@ describe('createSubGoalRoute', () => {
 
 		const request = new Request('http://localhost:8787', {
 			method: 'POST',
-			body: JSON.stringify({ goal_id: 1, sub_goal_name: 'subgoal', line_number: 1 }),
+			body: JSON.stringify({ parent_goal_id: 1, sub_goal_name: 'subgoal', line_number: 1 }),
 		});
-		const response = await createSubGoalRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await createSubGoalRoute(mockContext);
 
 		const json: ErrorResponse = await response.json();
 		expect(response.status).toBe(404);

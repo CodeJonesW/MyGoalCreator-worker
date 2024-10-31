@@ -1,16 +1,14 @@
-import { Env } from '../../types';
 import { createSubGoal } from '../../utils/ai_completions';
 import { getGoalById, getGoalByParentGoalIdAndName } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
-import { Goal } from '../../types';
 import { Context } from 'hono';
 
 export const createSubGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
-	const { req: request, env } = context;
+	const { req: request, env: contextEnv } = context;
+	const { env } = contextEnv.Bindings;
 
 	const authResponse = await verifyToken(request.raw, env);
-	console.log('authResponse', authResponse);
 
 	if (authResponse instanceof Response) return authResponse;
 
