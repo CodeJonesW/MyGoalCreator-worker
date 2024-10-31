@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 import { Env } from '../../types';
-import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '../../utils/db/db_queries';
+import { checkIfUserExistsByEmail, insertAuthEntry } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const loginRoute = async (context: Context): Promise<Response> => {

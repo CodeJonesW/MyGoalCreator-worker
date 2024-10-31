@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { registerRoute } from '../../src/routes/account/registerRoute';
 import { Env } from '../../src/types';
 import bcrypt from 'bcryptjs';
+import { createMockContext, HonoEnv } from '../testUtils.ts/testTypes';
 
 const mockPreparedStatement = {
 	bind: vi.fn().mockReturnThis(),
@@ -20,11 +21,13 @@ const mockEnv: Env = {
 	JWT_SECRET: 'test-secret',
 	OPENAI_API_KEY: 'fake-api-key',
 };
+const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 describe('Register Route', () => {
 	it('should return 400 for missing email or password', async () => {
 		const request = new Request('http://localhost/api/register', { method: 'POST' });
-		const response = await registerRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await registerRoute(mockContext);
 		const result: any = await response.json();
 
 		expect(response.status).toBe(400);
@@ -42,7 +45,8 @@ describe('Register Route', () => {
 
 		mockPreparedStatement.first.mockResolvedValue({ email: 'tester@example.com' });
 
-		const response: Response = await registerRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await registerRoute(mockContext);
 		const result: any = await response.json();
 
 		expect(response.status).toBe(400);
@@ -64,7 +68,8 @@ describe('Register Route', () => {
 		// @ts-ignore
 		vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashedpassword');
 
-		const response = await registerRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await registerRoute(mockContext);
 		const result = await response.json();
 
 		expect(response.status).toBe(200);
@@ -86,7 +91,8 @@ describe('Register Route', () => {
 
 		mockPreparedStatement.run.mockResolvedValue({ success: false });
 
-		const response = await registerRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockHonoEnv);
+		const response = await registerRoute(mockContext);
 		const result = await response.json();
 
 		expect(response.status).toBe(500);
