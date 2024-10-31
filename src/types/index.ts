@@ -25,6 +25,7 @@ export type Goal = {
 
 export type ErrorResponse = {
 	error: string;
+	status?: number;
 };
 
 export type SuccessResponse = {
