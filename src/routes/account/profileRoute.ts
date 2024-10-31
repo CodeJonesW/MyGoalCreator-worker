@@ -20,7 +20,7 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
-	const showUiHelp = userGoals.length < 2;
+	const showUiHelp = userGoals.length > 0 && !userGoals.some((goal) => goal.subgoals.length > 0);
 
 	if (recentGoal) {
 		const recentGoalId = recentGoal.goal_id;
