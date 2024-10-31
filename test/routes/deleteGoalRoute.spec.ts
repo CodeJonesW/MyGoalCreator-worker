@@ -25,7 +25,6 @@ describe('Delete Goal Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should delete the goal', async () => {
 		const request = new Request('http://localhost/api/analyze', {
@@ -41,7 +40,7 @@ describe('Delete Goal Route', () => {
 		mockPreparedStatement.first.mockResolvedValueOnce({ goal_id: 1 });
 		mockPreparedStatement.all.mockResolvedValueOnce({ results: [] });
 		mockPreparedStatement.run.mockResolvedValue({ result: 'success' });
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await deleteGoalByIdRoute(mockContext);
 		const result: SuccessResponse = await (response as Response).json();
 		expect(response.status).toBe(200);
@@ -59,7 +58,7 @@ describe('Delete Goal Route', () => {
 			user: { user_id: 1 },
 		});
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await deleteGoalByIdRoute(mockContext);
 		const result: ErrorResponse = await (response as Response).json();
 

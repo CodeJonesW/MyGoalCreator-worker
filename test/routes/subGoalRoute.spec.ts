@@ -37,7 +37,6 @@ const mockEnv: Env = {
 	JWT_SECRET: 'test-secret',
 	OPENAI_API_KEY: 'fake-api-key',
 };
-const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 describe('createSubGoalRoute', () => {
 	it('should return 401 if token verification fails', async () => {
@@ -52,7 +51,7 @@ describe('createSubGoalRoute', () => {
 			method: 'POST',
 			body: '{}',
 		});
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await createSubGoalRoute(mockContext);
 
 		expect(response.status).toBe(401);
@@ -70,7 +69,7 @@ describe('createSubGoalRoute', () => {
 			method: 'POST',
 			body: JSON.stringify({ parent_goal_id: 1, sub_goal_name: 'subgoal', line_number: 1 }),
 		});
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await createSubGoalRoute(mockContext);
 
 		const json: ErrorResponse = await response.json();

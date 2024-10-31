@@ -30,8 +30,6 @@ describe('Profile Route', () => {
 		OPENAI_API_KEY: 'fake-api-key',
 	};
 
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
-
 	it('should return 404 if user is not found in the database', async () => {
 		const request = new Request('http://localhost/api/profile', { method: 'GET' });
 
@@ -41,7 +39,7 @@ describe('Profile Route', () => {
 		});
 
 		mockPreparedStatement.first.mockResolvedValue(null);
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await profileRoute(mockContext);
 		const result: ErrorResponse = await response.json();
 
@@ -60,7 +58,7 @@ describe('Profile Route', () => {
 			})
 		);
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await profileRoute(mockContext);
 		const result: ErrorResponse = await response.json();
 
@@ -119,7 +117,7 @@ describe('Profile Route', () => {
 			],
 		});
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await profileRoute(mockContext);
 		const result = await response.json();
 

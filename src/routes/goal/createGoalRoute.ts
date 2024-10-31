@@ -7,8 +7,7 @@ export const createGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db/db_queries');
 	try {
-		const { req: request, env: contextEnv } = context;
-		const { env } = contextEnv.Bindings;
+		const { req: request, env } = context;
 
 		const authResponse = await verifyToken(request.raw, env);
 		if (authResponse instanceof Response) return authResponse;
@@ -44,8 +43,7 @@ export const streamGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db/db_queries');
 	try {
-		const { req: request, env: contextEnv } = context;
-		const { env } = contextEnv.Bindings;
+		const { req: request, env } = context;
 		const authResponse = await verifyToken(request.raw, env);
 		if (authResponse instanceof Response) return authResponse;
 

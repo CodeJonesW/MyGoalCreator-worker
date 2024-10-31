@@ -29,7 +29,6 @@ describe('Goal By Id Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should return 401 if the authorization is invalid', async () => {
 		const request = new Request('http://localhost/api/goal', {
@@ -39,7 +38,7 @@ describe('Goal By Id Route', () => {
 
 		const { verifyToken } = await import('../../src/utils/auth');
 		(verifyToken as Mock).mockResolvedValue(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }));
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await goalByIdRoute(mockContext);
 		const result: ErrorResponse = await response.json();
 
@@ -59,7 +58,7 @@ describe('Goal By Id Route', () => {
 		});
 		mockPreparedStatement.first.mockResolvedValueOnce(null); // Simulate no goal found
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await goalByIdRoute(mockContext);
 		const result = await response.json();
 
@@ -86,7 +85,7 @@ describe('Goal By Id Route', () => {
 		};
 		mockPreparedStatement.first.mockResolvedValueOnce(mockGoal);
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await goalByIdRoute(mockContext);
 		const result = await response.json();
 

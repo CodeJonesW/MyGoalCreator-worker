@@ -50,7 +50,6 @@ describe('Create Goal Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should return 400 if there are no analyze requests left', async () => {
 		const request = new Request('http://localhost/api/analyze', {
@@ -65,7 +64,7 @@ describe('Create Goal Route', () => {
 
 		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
 		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(false);
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await createGoalRoute(mockContext);
 		const result: ErrorResponse = await response.json();
 
@@ -91,7 +90,7 @@ describe('Create Goal Route', () => {
 		});
 
 		mockPreparedStatement.run.mockResolvedValue({ success: true, results: [{ goal_id: '1' }] });
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await createGoalRoute(mockContext);
 		const text = await response.text();
 		console.log(text);

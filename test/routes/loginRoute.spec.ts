@@ -3,13 +3,12 @@ import { loginRoute } from '../../src/routes/account/loginRoute'; // Adjust the 
 import { Env, ErrorResponse } from '../../src/types';
 import { createMockContext, HonoEnv, mockPreparedStatement } from '../testUtils.ts/testTypes';
 
-// Mock the bcryptjs and jsonwebtoken modules globally
 vi.mock('bcryptjs', () => ({
-	compare: vi.fn(), // Mock the compare function
+	compare: vi.fn(),
 }));
 
 vi.mock('jsonwebtoken', () => ({
-	sign: vi.fn(), // Mock the sign function
+	sign: vi.fn(),
 }));
 
 describe('Login Route', () => {
@@ -30,7 +29,6 @@ describe('Login Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should return 401 if password is invalid', async () => {
 		const request = new Request('http://localhost/api/login', {
@@ -49,7 +47,7 @@ describe('Login Route', () => {
 		const bcrypt = await import('bcryptjs');
 		(bcrypt.compare as Mock).mockResolvedValue(false);
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await loginRoute(mockContext);
 		const result: ErrorResponse = await response.json();
 
@@ -77,7 +75,7 @@ describe('Login Route', () => {
 		const jwt = await import('jsonwebtoken');
 		(jwt.sign as Mock).mockReturnValue('fake-jwt-token');
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await loginRoute(mockContext);
 		const result = await response.json();
 		console.log('result', result);

@@ -46,7 +46,6 @@ describe('Stream Goal Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should return 200, stream the response, and properly update the database', async () => {
 		const request = new Request('http://localhost/api/streamSubGoal', {
@@ -63,7 +62,7 @@ describe('Stream Goal Route', () => {
 
 		mockPreparedStatement.first.mockResolvedValueOnce({ goal_id: 1, goal_name: 'Test', aof: 'focus', timeline: '1 week' });
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await streamGoalRoute(mockContext);
 		const text = await response.text();
 

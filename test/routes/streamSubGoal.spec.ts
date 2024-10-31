@@ -46,7 +46,6 @@ describe('Stream Sub Goal Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should return 200, stream the response, and properly update the database', async () => {
 		const request = new Request('http://localhost/api/streamGoal', {
@@ -75,7 +74,7 @@ describe('Stream Sub Goal Route', () => {
 			parent_goal_id: null,
 		});
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await streamSubGoalRoute(mockContext);
 		const text = await response.text();
 		console.log(text);

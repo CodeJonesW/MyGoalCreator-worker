@@ -4,8 +4,7 @@ import { verifyToken } from '../../utils/auth';
 import { errorResponse } from '../../utils/response_utils';
 
 export const goalByIdRoute = async (context: Context): Promise<Response> => {
-	const { req: request, env: contextEnv } = context;
-	const { env } = contextEnv.Bindings;
+	const { req: request, env } = context;
 
 	const authResponse = await verifyToken(request.raw, env);
 	console.log('authResponse', authResponse);

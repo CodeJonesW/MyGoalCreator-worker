@@ -5,8 +5,7 @@ import { Context } from 'hono';
 
 export const createSubGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
-	const { req: request, env: contextEnv } = context;
-	const { env } = contextEnv.Bindings;
+	const { req: request, env } = context;
 
 	const authResponse = await verifyToken(request.raw, env);
 
@@ -57,8 +56,7 @@ export const createSubGoalRoute = async (context: Context): Promise<Response> =>
 
 export const streamSubGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
-	const { req: request, env: contextEnv } = context;
-	const { env } = contextEnv.Bindings;
+	const { req: request, env } = context;
 
 	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;

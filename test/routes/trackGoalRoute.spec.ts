@@ -34,7 +34,6 @@ describe('Track Goal Route', () => {
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
 	};
-	const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 	it('should return 400 if goal_id is missing in the request', async () => {
 		const request = new Request('http://localhost/api/trackGoal', {
@@ -46,7 +45,7 @@ describe('Track Goal Route', () => {
 		(verifyToken as Mock).mockResolvedValue({
 			user: { user_id: 1, email: 'test@example.com' },
 		});
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await trackGoalRoute(mockContext);
 		const result: ErrorResponse = await response.json();
 
@@ -67,7 +66,7 @@ describe('Track Goal Route', () => {
 
 		mockPreparedStatement.first.mockResolvedValue(null);
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await trackGoalRoute(mockContext);
 		const result: ErrorResponse = await response.json();
 

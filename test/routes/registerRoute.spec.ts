@@ -21,7 +21,6 @@ const mockEnv: Env = {
 	JWT_SECRET: 'test-secret',
 	OPENAI_API_KEY: 'fake-api-key',
 };
-const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 
 describe('Register Route', () => {
 	it('should return 400 for missing email or password', async () => {

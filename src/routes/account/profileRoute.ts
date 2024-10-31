@@ -10,8 +10,7 @@ import {
 import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (context: Context): Promise<Response> => {
-	const { req: request, env: contextEnv } = context;
-	const { env } = contextEnv.Bindings;
+	const { req: request, env } = context;
 
 	const { verifyToken } = await import('../../utils/auth');
 	const authResponse = await verifyToken(request.raw, env);
