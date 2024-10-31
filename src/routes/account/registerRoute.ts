@@ -5,8 +5,8 @@ import { errorResponse } from '../../utils/response_utils';
 import { Context } from 'hono';
 
 export const registerRoute = async (context: Context): Promise<Response> => {
-	const { req: request, env: contextEnv } = context;
-	const { env } = contextEnv.Bindings;
+	console.log(context);
+	const { req: request, env } = context;
 
 	const email = request.header('x-email');
 	const password = request.header('x-password');

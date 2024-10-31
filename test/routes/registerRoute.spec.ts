@@ -26,7 +26,7 @@ const mockHonoEnv: HonoEnv = { Bindings: { env: mockEnv } };
 describe('Register Route', () => {
 	it('should return 400 for missing email or password', async () => {
 		const request = new Request('http://localhost/api/register', { method: 'POST' });
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await registerRoute(mockContext);
 		const result: any = await response.json();
 
@@ -45,7 +45,7 @@ describe('Register Route', () => {
 
 		mockPreparedStatement.first.mockResolvedValue({ email: 'tester@example.com' });
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await registerRoute(mockContext);
 		const result: any = await response.json();
 
@@ -68,7 +68,7 @@ describe('Register Route', () => {
 		// @ts-ignore
 		vi.spyOn(bcrypt, 'hash').mockResolvedValue('hashedpassword');
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await registerRoute(mockContext);
 		const result = await response.json();
 
@@ -91,7 +91,7 @@ describe('Register Route', () => {
 
 		mockPreparedStatement.run.mockResolvedValue({ success: false });
 
-		const mockContext = createMockContext(request, mockHonoEnv);
+		const mockContext = createMockContext(request, mockEnv);
 		const response = await registerRoute(mockContext);
 		const result = await response.json();
 

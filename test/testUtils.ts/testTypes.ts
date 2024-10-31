@@ -24,7 +24,7 @@ export const mockWorkerEnv: Env = {
 export type HonoEnv = { Bindings: Record<string, any> };
 const mockHonoEnv: HonoEnv = { Bindings: { env: mockWorkerEnv } };
 
-export function createMockContext(request: Request, env: HonoEnv = mockHonoEnv): Context<HonoEnv> {
+export function createMockContext(request: Request, env: Env): Context<HonoEnv> {
 	return {
 		req: createMockHonoRequest(request, request.url),
 		env,
