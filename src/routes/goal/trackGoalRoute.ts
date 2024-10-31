@@ -8,7 +8,8 @@ import { Context } from 'hono';
 export const trackGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	const { getGoalById } = await import('../../utils/db/db_queries');
-	const { req: request, env } = context;
+	const { req: request, env: contextEnv } = context;
+	const { env } = contextEnv.Bindings;
 
 	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;

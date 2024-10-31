@@ -4,7 +4,8 @@ import { verifyToken } from '../../utils/auth';
 import { errorResponse } from '../../utils/response_utils';
 
 export const trackedGoalByIdRoute = async (context: Context): Promise<Response> => {
-	const { req: request, env } = context;
+	const { req: request, env: contextEnv } = context;
+	const { env } = contextEnv.Bindings;
 
 	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
@@ -15,8 +16,9 @@ export const trackedGoalByIdRoute = async (context: Context): Promise<Response> 
 	if (!goal_id || !step) {
 		return errorResponse('Missing required fields', 400);
 	}
-
+	console.log('env DB', env.DB);
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
+	console.log('goal', goal);
 	if (!goal) {
 		return errorResponse('Goal not found', 404);
 	}
