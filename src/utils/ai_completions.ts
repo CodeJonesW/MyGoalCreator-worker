@@ -1,5 +1,6 @@
 import OpenAI from 'openai';
 import { Env } from '../types';
+import { raw } from 'hono/html';
 
 const markdownPrompt = `Please format your response in valid Markdown, adhering to the following:
 				- Use headings with "#" for levels (e.g., "#", "##", "###").
@@ -91,7 +92,7 @@ export const streamGoal = async (env: Env, goal_id: string, goal: any, areaOfFoc
 	}
 };
 
-export const createSubGoal = async (env: Env, parent_goal: any, sub_goal_name: string, sub_goal_id: number) => {
+export const streamSubGoal = async (env: Env, parent_goal: any, sub_goal_name: string, sub_goal_id: number) => {
 	const openai = new OpenAI({ apiKey: env.OPENAI_API_KEY });
 
 	const { goal_name: parent_goal_name, plan: parent_plan, goal_id: parent_goal_id } = parent_goal;
@@ -144,7 +145,9 @@ export const createSubGoal = async (env: Env, parent_goal: any, sub_goal_name: s
 				}
 
 				controller.enqueue(encoder.encode(`event: done\n\n`));
+				console.log('here', rawTotalResponse, sub_goal_id);
 				const updateResult = await env.DB.prepare(`UPDATE Goals SET plan = ? WHERE goal_id = ?`).bind(rawTotalResponse, sub_goal_id).run();
+				console.log('result', updateResult);
 				controller.close();
 			},
 		});

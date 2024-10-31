@@ -1,4 +1,4 @@
-import { createSubGoal } from '../../utils/ai_completions';
+import { streamSubGoal } from '../../utils/ai_completions';
 import { getGoalById, getGoalByParentGoalIdAndName } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 import { Context } from 'hono';
@@ -57,12 +57,15 @@ export const createSubGoalRoute = async (context: Context): Promise<Response> =>
 
 export const streamSubGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
-	const { req: request, env } = context;
+	const { req: request, env: contextEnv } = context;
+	const { env } = contextEnv.Bindings;
 
 	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
+	console.log('stream sub goal');
 
 	const { goal_id }: any = await request.json();
+	console.log('goalid', goal_id);
 
 	if (!goal_id) {
 		return errorResponse('Missing required fields', 400);
@@ -72,11 +75,12 @@ export const streamSubGoalRoute = async (context: Context): Promise<Response> =>
 	if (!goal) {
 		return errorResponse('Goal not found', 404);
 	}
+	console.log('sub goal', goal);
 
 	const parentGoal = await getGoalById(env, goal.parent_goal_id as string);
 
-	const stream = await createSubGoal(env, parentGoal, goal.goal_name as string, goal.goal_id as number);
-
+	const stream = await streamSubGoal(env, parentGoal, goal.goal_name as string, goal.goal_id as number);
+	console.log('i can do it');
 	return new Response(stream, {
 		headers: {
 			'Content-Type': 'text/event-stream',
