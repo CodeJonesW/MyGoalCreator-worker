@@ -1,12 +1,6 @@
 import { Context } from 'hono';
 import { Env } from '../../types';
-import {
-	checkUserFirstLogin,
-	findUserTrackedGoals,
-	findUserRecentGoal,
-	findUserClientData,
-	findGoalsAndSubGoalsByUserId,
-} from '../../utils/db/db_queries';
+import { findUserTrackedGoals, findUserRecentGoal, findUserClientData, findGoalsAndSubGoalsByUserId } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (context: Context): Promise<Response> => {
@@ -26,9 +20,7 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
-	const auths = await checkUserFirstLogin(env, user.user_id);
-	const is_first_login = auths.results.length <= 1 ? true : false;
-	const showUiHelp = is_first_login && userGoals.length === 0;
+	const showUiHelp = userGoals.length < 2;
 
 	if (recentGoal) {
 		const recentGoalId = recentGoal.goal_id;
