@@ -10,7 +10,8 @@ import {
 import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (context: Context): Promise<Response> => {
-	const { req: request, env } = context;
+	const { req: request, env: contextEnv } = context;
+	const { env } = contextEnv.Bindings;
 
 	const { verifyToken } = await import('../../utils/auth');
 	const authResponse = await verifyToken(request.raw, env);
@@ -24,7 +25,6 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 	}
 
 	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
-	console.log('User goals', userGoals);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
 	const auths = await checkUserFirstLogin(env, user.user_id);
