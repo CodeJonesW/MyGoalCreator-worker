@@ -1,12 +1,15 @@
+import { Context } from 'hono';
 import { Env } from '../../types';
 import { streamGoal } from '../../utils/ai_completions';
 import { errorResponse } from '../../utils/response_utils';
 
-export const createGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+export const createGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db/db_queries');
 	try {
-		const authResponse = await verifyToken(request, env);
+		const { req: request, env } = context;
+
+		const authResponse = await verifyToken(request.raw, env);
 		if (authResponse instanceof Response) return authResponse;
 
 		const user = authResponse.user;
@@ -14,8 +17,6 @@ export const createGoalRoute = async (request: Request, env: Env): Promise<Respo
 		if (!hasAnalyzeRequests) {
 			return errorResponse('No analyze requests left', 400);
 		}
-		console.log('Request body', request.body);
-
 		const { goal_name, area_of_focus, timeline }: any = await request.json();
 
 		if (!goal_name) {
@@ -38,11 +39,12 @@ export const createGoalRoute = async (request: Request, env: Env): Promise<Respo
 	}
 };
 
-export const streamGoalRoute = async (request: Request, env: Env): Promise<Response> => {
+export const streamGoalRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	const { checkIfUserHasAnalyzeRequests } = await import('../../utils/db/db_queries');
 	try {
-		const authResponse = await verifyToken(request, env);
+		const { req: request, env } = context;
+		const authResponse = await verifyToken(request.raw, env);
 		if (authResponse instanceof Response) return authResponse;
 
 		const user = authResponse.user;

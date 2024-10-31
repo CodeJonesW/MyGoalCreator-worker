@@ -1,9 +1,13 @@
+import { Context } from 'hono';
 import { Env } from '../../types';
 import { verifyToken } from '../../utils/auth';
 import { errorResponse } from '../../utils/response_utils';
 
-export const goalByIdRoute = async (request: Request, env: Env): Promise<Response> => {
-	const authResponse = await verifyToken(request, env);
+export const goalByIdRoute = async (context: Context): Promise<Response> => {
+	const { req: request, env } = context;
+
+	const authResponse = await verifyToken(request.raw, env);
+	console.log('authResponse', authResponse);
 	if (authResponse instanceof Response) return authResponse;
 
 	const url = new URL(request.url);

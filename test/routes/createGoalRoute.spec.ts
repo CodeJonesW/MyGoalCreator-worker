@@ -1,13 +1,14 @@
 import { describe, it, expect, vi, Mock } from 'vitest';
 import { createGoalRoute } from '../../src/routes/goal/createGoalRoute';
-import { Env } from '../../src/types';
+import { Env, ErrorResponse } from '../../src/types';
+import { createMockContext, HonoEnv } from '../testUtils.ts/testTypes';
 
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
 }));
 
 vi.mock('openai', async (importOriginal) => {
-	const actual = await importOriginal(); // Get the actual module
+	const actual = await importOriginal();
 
 	return {
 		// @ts-ignore
@@ -31,7 +32,7 @@ vi.mock('../../src/utils/db/db_queries', () => ({
 	checkIfUserHasAnalyzeRequests: vi.fn(),
 }));
 
-describe('Analyze Route', () => {
+describe('Create Goal Route', () => {
 	const mockPreparedStatement = {
 		bind: vi.fn().mockReturnThis(),
 		first: vi.fn(),
@@ -53,31 +54,7 @@ describe('Analyze Route', () => {
 	it('should return 400 if there are no analyze requests left', async () => {
 		const request = new Request('http://localhost/api/analyze', {
 			method: 'POST',
-			body: JSON.stringify({ goal: 'Test goal' }), // Include a valid goal in the request body
-		});
-
-		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue({
-			user: { user_id: 1 },
-		});
-
-		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
-		// @ts-ignore
-		checkIfUserHasAnalyzeRequests.mockResolvedValue(false); // Simulate no analyze requests left
-
-		const response = await createGoalRoute(request, mockEnv);
-		const result = await response.json();
-
-		expect(response.status).toBe(400);
-		// @ts-ignore
-		expect(result.error).toBe('No analyze requests left');
-	});
-
-	it('should return 200, stream the response, and properly update the database', async () => {
-		const request = new Request('http://localhost/api/analyze', {
-			method: 'POST',
-			body: JSON.stringify({ goal: 'Test goal', timeline: '1 week' }),
+			body: JSON.stringify({ goal: 'Test goal' }),
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
@@ -86,24 +63,43 @@ describe('Analyze Route', () => {
 		});
 
 		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
-		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(true); // Simulate that the user has analyze requests
+		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(false);
+		const mockContext = createMockContext(request, mockEnv);
+		const response = await createGoalRoute(mockContext);
+		const result: ErrorResponse = await response.json();
+
+		expect(response.status).toBe(400);
+		expect(result.error).toBe('No analyze requests left');
+	});
+
+	it('should insert a new goal into db and return a 200', async () => {
+		const request = new Request('http://localhost/api/analyze', {
+			method: 'POST',
+			body: JSON.stringify({ goal_name: 'Learn algebra', area_of_focus: 'Learn division', timeline: '1 week' }),
+		});
+
+		const { verifyToken } = await import('../../src/utils/auth');
+		(verifyToken as Mock).mockResolvedValue({
+			user: { user_id: 1 },
+		});
+
+		const { checkIfUserHasAnalyzeRequests } = await import('../../src/utils/db/db_queries');
+		(checkIfUserHasAnalyzeRequests as Mock).mockResolvedValue(true);
 		mockPreparedStatement.first.mockResolvedValueOnce({
 			analyze_requests: 5,
 		});
 
-		const response = await createGoalRoute(request, mockEnv);
+		mockPreparedStatement.run.mockResolvedValue({ success: true, results: [{ goal_id: '1' }] });
+		const mockContext = createMockContext(request, mockEnv);
+		const response = await createGoalRoute(mockContext);
 		const text = await response.text();
 		console.log(text);
 
 		expect(response.status).toBe(200);
-		expect(text).toContain('Test chunk part 1');
-		expect(text).toContain('Test chunk part 2');
 
-		// Verify that the goal got inserted into the database with the correct values
-		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('INSERT INTO Goals (user_id, goal_name, plan, timeline, aof) VALUES (?, ?, ?, ?, ?)');
-		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1, 'Test goal', expect.any(String), '1 week', expect.any(String));
-		expect(mockPreparedStatement.run).toHaveBeenCalledTimes(2); // One for inserting the goal and one for updating analyze requests
-		expect(mockEnv.DB.prepare).toHaveBeenCalledWith('UPDATE Users SET analyze_requests = analyze_requests - 1 WHERE user_id = ?');
-		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1); // user_id
+		expect(mockEnv.DB.prepare).toHaveBeenCalledWith(
+			'INSERT INTO Goals (user_id, goal_name, aof, timeline) VALUES (?, ?, ?, ?) RETURNING goal_id'
+		);
+		expect(mockPreparedStatement.bind).toHaveBeenCalledWith(1, 'Learn algebra', 'Learn division', '1 week');
 	});
 });

@@ -1,9 +1,12 @@
+import { Context } from 'hono';
 import { Env } from '../../types';
 import { verifyToken } from '../../utils/auth';
 import { errorResponse } from '../../utils/response_utils';
 
-export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<Response> => {
-	const authResponse = await verifyToken(request, env);
+export const trackedGoalByIdRoute = async (context: Context): Promise<Response> => {
+	const { req: request, env } = context;
+
+	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
 
 	const url = new URL(request.url);
@@ -12,8 +15,9 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 	if (!goal_id || !step) {
 		return errorResponse('Missing required fields', 400);
 	}
-
+	console.log('env DB', env.DB);
 	const goal = await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
+	console.log('goal', goal);
 	if (!goal) {
 		return errorResponse('Goal not found', 404);
 	}
@@ -26,7 +30,7 @@ export const trackedGoalByIdRoute = async (request: Request, env: Env): Promise<
 	const timelines = await env.DB.prepare(`SELECT * FROM Timelines WHERE goal_id = ?`).bind(goal_id).all();
 
 	const selectedTimeline = timelines.results[parseInt(step) as number];
-	const selectedTimeLinePlanItems = planItems.results.filter((item) => {
+	const selectedTimeLinePlanItems = planItems.results.filter((item: any) => {
 		return item.timeline_id === selectedTimeline.timeline_id;
 	});
 

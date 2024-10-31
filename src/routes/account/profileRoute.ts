@@ -1,16 +1,13 @@
+import { Context } from 'hono';
 import { Env } from '../../types';
-import {
-	checkUserFirstLogin,
-	findUserTrackedGoals,
-	findUserRecentGoal,
-	findUserClientData,
-	findGoalsAndSubGoalsByUserId,
-} from '../../utils/db/db_queries';
+import { findUserTrackedGoals, findUserRecentGoal, findUserClientData, findGoalsAndSubGoalsByUserId } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
-export const profileRoute = async (request: Request, env: Env): Promise<Response> => {
+export const profileRoute = async (context: Context): Promise<Response> => {
+	const { req: request, env } = context;
+
 	const { verifyToken } = await import('../../utils/auth');
-	const authResponse = await verifyToken(request, env);
+	const authResponse = await verifyToken(request.raw, env);
 	if (authResponse instanceof Response) return authResponse;
 
 	const user = authResponse.user;
@@ -21,12 +18,9 @@ export const profileRoute = async (request: Request, env: Env): Promise<Response
 	}
 
 	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
-	console.log('User goals', userGoals);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
-	const auths = await checkUserFirstLogin(env, user.user_id);
-	const is_first_login = auths.results.length <= 1 ? true : false;
-	const showUiHelp = is_first_login && userGoals.length === 0;
+	const showUiHelp = userGoals.length > 0 && !userGoals.some((goal) => goal.subgoals.length > 0);
 
 	if (recentGoal) {
 		const recentGoalId = recentGoal.goal_id;

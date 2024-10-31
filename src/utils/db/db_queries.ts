@@ -6,6 +6,7 @@ export const checkIfUserExistsByEmail = async (email: string, env: Env): Promise
 
 export const checkIfUserHasAnalyzeRequests = async (user_id: number, env: Env): Promise<boolean> => {
 	const user = (await env.DB.prepare(`SELECT analyze_requests FROM Users WHERE user_id = ?`).bind(user_id).first()) as User;
+	console.log('checkIfUserHasAnalyzeRequests', user);
 	if (!user) return false;
 	return (user.analyze_requests as number) > 0;
 };
@@ -40,6 +41,7 @@ export const findUserGoals = async (env: Env, user_id: any) => {
 };
 
 export const getGoalById = async (env: Env, goal_id: any) => {
+	console.log('getgoalbyid', goal_id);
 	return await env.DB.prepare(`SELECT * FROM Goals WHERE goal_id = ?`).bind(goal_id).first();
 };
 

@@ -10,66 +10,30 @@ import {
 	loginRoute,
 	deleteGoalByIdRoute,
 	trackedGoalByIdRoute,
+	updatePlanItemRoute,
+	streamSubGoalRoute,
 } from './routes';
-import { updatePlanItemRoute } from './routes/goal/updatePlanItemRoute';
-import { streamSubGoalRoute } from './routes/goal/subGoalRoute';
+import { Hono } from 'hono';
 
-export default {
-	async fetch(request, env): Promise<Response> {
-		const { pathname } = new URL(request.url);
+const app = new Hono<{ Bindings: Env }>();
 
-		if (pathname === '/api/analyze') {
-			return await streamGoalRoute(request, env);
-		}
+app.post('/api/createGoal', createGoalRoute);
+app.post('/api/streamGoal', streamGoalRoute);
 
-		if (pathname === '/api/createGoal') {
-			if (request.method === 'POST') {
-				return await createGoalRoute(request, env);
-			}
-		}
+app.get('/api/goal', goalByIdRoute);
+app.delete('/api/goal', deleteGoalByIdRoute);
 
-		if (pathname === '/api/createSubGoal') {
-			return await createSubGoalRoute(request, env);
-		}
-		if (pathname === '/api/subgoal') {
-			return await streamSubGoalRoute(request, env);
-		}
+app.post('/api/createSubGoal', createSubGoalRoute);
+app.post('/api/streamSubGoal', streamSubGoalRoute);
 
-		if (pathname.startsWith('/api/goal')) {
-			if (request.method === 'GET') {
-				return await goalByIdRoute(request, env);
-			}
-			if (request.method === 'DELETE') {
-				return await deleteGoalByIdRoute(request, env);
-			}
-		}
+app.post('/api/login', loginRoute);
+app.post('/api/register', registerRoute);
 
-		if (pathname === '/api/login') {
-			return await loginRoute(request, env);
-		}
+app.get('/api/profile', profileRoute);
 
-		if (pathname === '/api/profile') {
-			return await profileRoute(request, env);
-		}
+app.post('/api/trackGoal', trackGoalRoute);
+app.get('/api/trackGoal', trackedGoalByIdRoute);
 
-		if (pathname === '/api/register') {
-			return await registerRoute(request, env);
-		}
+app.put('/api/planItem', updatePlanItemRoute);
 
-		if (pathname === '/api/trackGoal') {
-			if (request.method === 'POST') {
-				return await trackGoalRoute(request, env);
-			}
-			if (request.method === 'GET') {
-				return await trackedGoalByIdRoute(request, env);
-			}
-		}
-		if (pathname === '/api/planItem') {
-			if (request.method === 'PUT') {
-				return await updatePlanItemRoute(request, env);
-			}
-		}
-
-		return new Response('Not found', { status: 404 });
-	},
-} satisfies ExportedHandler<Env>;
+export default app;

@@ -1,15 +1,17 @@
+import { Context } from 'hono';
 import { Env } from '../../types';
-import { checkIfUserExistsByEmail, checkUserFirstLogin, insertAuthEntry } from '../../utils/db/db_queries';
+import { checkIfUserExistsByEmail, insertAuthEntry } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
-export const loginRoute = async (request: Request, env: Env): Promise<Response> => {
-	const email = request.headers.get('x-email');
-	const password = request.headers.get('x-password');
+export const loginRoute = async (context: Context): Promise<Response> => {
+	const { req: request, env } = context;
+
+	const email = request.header('x-email');
+	const password = request.header('x-password');
 
 	if (!email || !password) {
 		return errorResponse('Missing email or password', 400);
 	}
-
 	const user = await checkIfUserExistsByEmail(email, env);
 	if (!user) {
 		return errorResponse('User not found', 404);

@@ -1,6 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, Mock } from 'vitest';
 import { goalByIdRoute } from '../../src/routes/goal/goalByIdRoute'; // Adjust path as needed
-import { Env } from '../../src/types';
+import { Env, ErrorResponse } from '../../src/types';
+import { createMockContext, HonoEnv } from '../testUtils.ts/testTypes';
 
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
@@ -11,11 +12,19 @@ vi.mock('../../src/utils/db/db_queries', () => ({
 }));
 
 describe('Goal By Id Route', () => {
+	const mockPreparedStatement = {
+		bind: vi.fn().mockReturnThis(),
+		first: vi.fn(),
+		all: vi.fn(),
+		run: vi.fn(),
+	};
+
 	const mockEnv: Env = {
 		DB: {
-			prepare: vi.fn().mockReturnThis(),
-			bind: vi.fn().mockReturnThis(),
-			first: vi.fn(),
+			prepare: vi.fn(() => mockPreparedStatement),
+			dump: vi.fn(),
+			batch: vi.fn(),
+			exec: vi.fn(),
 		} as any,
 		JWT_SECRET: 'test-secret',
 		OPENAI_API_KEY: 'fake-api-key',
@@ -28,14 +37,12 @@ describe('Goal By Id Route', () => {
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }));
-
-		const response = await goalByIdRoute(request, mockEnv);
-		const result = await response.json();
+		(verifyToken as Mock).mockResolvedValue(new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 }));
+		const mockContext = createMockContext(request, mockEnv);
+		const response = await goalByIdRoute(mockContext);
+		const result: ErrorResponse = await response.json();
 
 		expect(response.status).toBe(401);
-		// @ts-ignore
 		expect(result.error).toBe('Unauthorized');
 	});
 
@@ -46,14 +53,13 @@ describe('Goal By Id Route', () => {
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue({
+		(verifyToken as Mock).mockResolvedValue({
 			user: { user_id: 1 },
 		});
-		// @ts-ignore
-		mockEnv.DB.first.mockResolvedValueOnce(null); // Simulate no goal found
+		mockPreparedStatement.first.mockResolvedValueOnce(null); // Simulate no goal found
 
-		const response = await goalByIdRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockEnv);
+		const response = await goalByIdRoute(mockContext);
 		const result = await response.json();
 
 		expect(response.status).toBe(404);
@@ -68,8 +74,7 @@ describe('Goal By Id Route', () => {
 		});
 
 		const { verifyToken } = await import('../../src/utils/auth');
-		// @ts-ignore
-		verifyToken.mockResolvedValue({
+		(verifyToken as Mock).mockResolvedValue({
 			user: { user_id: 1 },
 		});
 
@@ -78,14 +83,14 @@ describe('Goal By Id Route', () => {
 			plan: 'Step 1: Understand basics. Step 2: Write code.',
 			timeline: '3 months',
 		};
-		// @ts-ignore
-		mockEnv.DB.first.mockResolvedValueOnce(mockGoal); // Simulate goal found
+		mockPreparedStatement.first.mockResolvedValueOnce(mockGoal);
 
-		const response = await goalByIdRoute(request, mockEnv);
+		const mockContext = createMockContext(request, mockEnv);
+		const response = await goalByIdRoute(mockContext);
 		const result = await response.json();
 
 		expect(response.status).toBe(200);
 		// @ts-ignore
-		expect(result.goal).toEqual(mockGoal); // Verify that the goal matches
+		expect(result.goal).toEqual(mockGoal);
 	});
 });
