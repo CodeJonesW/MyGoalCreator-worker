@@ -1,4 +1,6 @@
-## Cloudflare Worker - supporting https://www.mygoalcreator.com
+## My Goal Creator Worker
+
+Web Application Server using Hono run on Cloudflare workers.
 
 ## Frontend Repo 
 - https://github.com/CodeJonesW/MyGoalCreator
