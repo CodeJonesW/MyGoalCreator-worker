@@ -11,6 +11,7 @@ afterEach(() => {
 	vi.clearAllMocks();
 });
 
+
 describe('Profile Route', () => {
 	const mockPreparedStatement = {
 		bind: vi.fn().mockReturnThis(),
@@ -31,6 +32,7 @@ describe('Profile Route', () => {
 	};
 
 	it('should return 404 if user is not found in the database', async () => {
+		console.log('test')
 		const request = new Request('http://localhost/api/profile', { method: 'GET' });
 
 		const { verifyToken } = await import('../../src/utils/auth');
