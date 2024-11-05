@@ -16,12 +16,15 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 
 	// Iterate through level 1 headings
 	Object.entries(plan).forEach(([level1Heading, level2Contents]) => {
+		console.log('lvl 1 headings', level1Heading);
+		console.log('lvl 2 contents', level2Contents);
 		// Insert level 1 timeline
 		const timelineType = determineTimelineType(level1Heading);
+
 		timelineMap[level1Heading] = timelineId;
 		statements.push(
 			db
-				.prepare(`INSERT INTO Timelines (timeline_id, title, timeline_type, goal_id, parent_id) VALUES (?, ?, ?, ?, NULL)`)
+				.prepare(`INSERT INTO Timelines (timeline_id, title, timeline_type, goal_id) VALUES (?, ?, ?, ?)`)
 				.bind(timelineId, level1Heading, timelineType, goalId)
 		);
 		const parentTimelineId = timelineId; // Store the parent timeline ID
@@ -32,34 +35,29 @@ export const generatePreparedStatementsForTimelinesAndPlanItems = (
 			level2Contents.forEach((item) => {
 				statements.push(
 					db
-						.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)`)
+						.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, name, goal_id, item_status) VALUES (?, ?, ?, ?, ?)`)
 						.bind(planItemId, parentTimelineId, item, goalId, 'todo')
 				);
 				planItemId++;
 			});
 		} else {
+			console.log('lvl 2 is an object');
 			// Otherwise, iterate through level 2 headings (e.g., "Understanding the Basics")
 			Object.entries(level2Contents).forEach(([level2Heading, items]) => {
-				// Insert level 2 timeline with level 1 as the parent
-				const level2TimelineType = determineTimelineType(level2Heading);
-				timelineMap[level2Heading] = timelineId;
-				statements.push(
-					db
-						.prepare(`INSERT INTO Timelines (timeline_id, title, timeline_type, parent_id, goal_id) VALUES (?, ?, ?, ?, ?)`)
-						.bind(timelineId, level2Heading, level2TimelineType, parentTimelineId, goalId)
-				);
-				const currentTimelineId = timelineId; // Store the current timeline ID for plan items
-				timelineId++;
+				console.log('lvl 2 heading', level2Heading, items);
+				console.log('current timeline id', parentTimelineId);
+
+				const description = items.join(' \n');
+				console.log('description', description);
+				console.log('goal id ', goalId);
 
 				// Insert each plan item under this level 2 timeline
-				items.forEach((item) => {
-					statements.push(
-						db
-							.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?)`)
-							.bind(planItemId, currentTimelineId, item, goalId, 'todo')
-					);
-					planItemId++;
-				});
+				statements.push(
+					db
+						.prepare(`INSERT INTO PlanItems (plan_item_id, timeline_id, name, description, goal_id, item_status) VALUES (?, ?, ?, ?, ?, ?)`)
+						.bind(planItemId, parentTimelineId, level2Heading, description, goalId, 'todo')
+				);
+				planItemId++;
 			});
 		}
 	});

@@ -28,11 +28,14 @@ export const trackedGoalByIdRoute = async (context: Context): Promise<Response> 
 
 	const planItems = await env.DB.prepare(`SELECT * FROM PlanItems WHERE goal_id = ?`).bind(goal_id).all();
 	const timelines = await env.DB.prepare(`SELECT * FROM Timelines WHERE goal_id = ?`).bind(goal_id).all();
+	console.log('timelines', timelines);
+	console.log('planItems', planItems);
 
 	const selectedTimeline = timelines.results[parseInt(step) as number];
 	const selectedTimeLinePlanItems = planItems.results.filter((item: any) => {
 		return item.timeline_id === selectedTimeline.timeline_id;
 	});
+	console.log('selecttimeline ', selectedTimeline);
 
 	const isLastStep = parseInt(step) === timelines.results.length - 1;
 
