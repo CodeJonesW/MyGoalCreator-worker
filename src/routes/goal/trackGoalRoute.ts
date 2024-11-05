@@ -1,5 +1,5 @@
 import { Env, Goal } from '../../types';
-import { parseGoalPlanHeadersAndContent } from '../../utils/md_parser';
+import { parseGoalPlanHeadersAndContentV2 } from '../../utils/md_parser';
 import { generatePreparedStatementsForTimelinesAndPlanItems } from '../../utils/db/query_gen';
 import { getLatestPlanItemId, getLatestTimelineId } from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
@@ -54,7 +54,8 @@ export const trackGoalRoute = async (context: Context): Promise<Response> => {
 };
 
 const parseGoalAndInsertTimelineAndPlanItems = async (env: Env, goal: Goal) => {
-	const parsed = parseGoalPlanHeadersAndContent(goal);
+	const parsed = parseGoalPlanHeadersAndContentV2(goal);
+	console.log('parsed goal', parsed);
 	const latestTimelineId = await getLatestTimelineId(env);
 	const latestPlanItemId = await getLatestPlanItemId(env);
 	const statements = generatePreparedStatementsForTimelinesAndPlanItems(

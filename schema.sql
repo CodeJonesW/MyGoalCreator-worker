@@ -48,10 +48,8 @@ CREATE TABLE Timelines (
     timeline_id INTEGER PRIMARY KEY, 
     title VARCHAR(255) NOT NULL, 
     timeline_type TEXT NOT NULL, 
-    parent_id INTEGER,
     goal_id INTEGER, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (parent_id) REFERENCES Timelines(timeline_id) 
     FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );
 
@@ -59,6 +57,7 @@ CREATE TABLE PlanItems (
     plan_item_id INTEGER PRIMARY KEY, 
     timeline_id INTEGER NOT NULL, 
     goal_id INTEGER NOT NULL,
+    name TEXT NOT NULL,
     description TEXT NOT NULL,
     item_status TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
