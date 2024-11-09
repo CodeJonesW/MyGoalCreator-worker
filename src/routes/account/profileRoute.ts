@@ -1,6 +1,12 @@
 import { Context } from 'hono';
 import { Env } from '../../types';
-import { findUserTrackedGoals, findUserRecentGoal, findUserClientData, findGoalsAndSubGoalsByUserId } from '../../utils/db/db_queries';
+import {
+	findUserTrackedGoals,
+	findUserRecentGoal,
+	findUserClientData,
+	findGoalsAndSubGoalsByUserId,
+	getUserDailyTodos,
+} from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (context: Context): Promise<Response> => {
@@ -16,6 +22,9 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 	if (!userFromDb) {
 		return errorResponse('User not found', 404);
 	}
+
+	const dailyTodos = await getUserDailyTodos(user.user_id, env);
+	console.log('dailyTodos', dailyTodos);
 
 	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
@@ -41,6 +50,7 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		recentGoal: recentGoal ? recentGoal : null,
 		trackedGoals: trackedGoals.results,
 		showUiHelp: showUiHelp,
+		dailyTodos: dailyTodos.results,
 	};
 
 	return new Response(JSON.stringify(responseData), {

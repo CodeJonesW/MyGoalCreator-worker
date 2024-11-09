@@ -12,6 +12,8 @@ import {
 	trackedGoalByIdRoute,
 	updatePlanItemRoute,
 	streamSubGoalRoute,
+	createDailyTodoRoute,
+	completeDailyTodoRoute,
 } from './routes';
 import { Hono } from 'hono';
 
@@ -35,5 +37,8 @@ app.post('/api/trackGoal', trackGoalRoute);
 app.get('/api/trackGoal', trackedGoalByIdRoute);
 
 app.put('/api/planItem', updatePlanItemRoute);
+
+app.post('/api/dailyTodo', createDailyTodoRoute);
+app.post('/api/completeDailyTodo', completeDailyTodoRoute);
 
 export default app;

@@ -1,3 +1,5 @@
+DROP TABLE IF EXISTS DailyTodoCompletions;
+DROP TABLE IF EXISTS DailyTodos;
 DROP TABLE IF EXISTS PlanItems;
 DROP TABLE IF EXISTS Timelines;
 DROP TABLE IF EXISTS TrackedGoals;
@@ -44,7 +46,7 @@ CREATE TABLE IF NOT EXISTS Auth (
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
 );
 
-CREATE TABLE Timelines (
+CREATE TABLE IF NOT EXISTS Timelines (
     timeline_id INTEGER PRIMARY KEY, 
     title VARCHAR(255) NOT NULL, 
     timeline_type TEXT NOT NULL, 
@@ -53,7 +55,7 @@ CREATE TABLE Timelines (
     FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );
 
-CREATE TABLE PlanItems (
+CREATE TABLE IF NOT EXISTS PlanItems (
     plan_item_id INTEGER PRIMARY KEY, 
     timeline_id INTEGER NOT NULL, 
     goal_id INTEGER NOT NULL,
@@ -64,3 +66,19 @@ CREATE TABLE PlanItems (
     FOREIGN KEY (timeline_id) REFERENCES Timelines(timeline_id) 
     FOREIGN KEY (goal_id) REFERENCES Goals(goal_id)
 );
+
+CREATE TABLE IF NOT EXISTS DailyTodos (
+    daily_todo_id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    todo TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES Users(user_id)
+);
+
+CREATE TABLE IF NOT EXISTS DailyTodoCompletions (
+    daily_todo_completion_id INTEGER PRIMARY KEY,
+    user_id INTEGER,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES Users(user_id)
+);
+
