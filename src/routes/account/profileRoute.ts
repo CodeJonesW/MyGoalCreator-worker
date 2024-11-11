@@ -1,5 +1,4 @@
 import { Context } from 'hono';
-import { Env } from '../../types';
 import {
 	findUserTrackedGoals,
 	findUserRecentGoal,
@@ -23,9 +22,6 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		return errorResponse('User not found', 404);
 	}
 
-	const dailyTodos = await getUserDailyTodos(user.user_id, env);
-	console.log('dailyTodos', dailyTodos);
-
 	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
@@ -44,6 +40,17 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		});
 	}
 
+	const dailyTodos = await getUserDailyTodos(user.user_id, env);
+	const dailyTodosCompletions = await env.DB.prepare(
+		`
+	  SELECT *
+	  FROM DailyTodoCompletions
+	  WHERE user_id = ?
+	`
+	)
+		.bind(user.user_id)
+		.all();
+
 	const responseData = {
 		user: userFromDb,
 		goals: userGoals,
@@ -51,6 +58,7 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		trackedGoals: trackedGoals.results,
 		showUiHelp: showUiHelp,
 		dailyTodos: dailyTodos.results,
+		dailyTodosCompletions: dailyTodosCompletions.results,
 	};
 
 	return new Response(JSON.stringify(responseData), {

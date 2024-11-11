@@ -11,7 +11,6 @@ afterEach(() => {
 	vi.clearAllMocks();
 });
 
-
 describe('Profile Route', () => {
 	const mockPreparedStatement = {
 		bind: vi.fn().mockReturnThis(),
@@ -32,7 +31,7 @@ describe('Profile Route', () => {
 	};
 
 	it('should return 404 if user is not found in the database', async () => {
-		console.log('test')
+		console.log('test');
 		const request = new Request('http://localhost/api/profile', { method: 'GET' });
 
 		const { verifyToken } = await import('../../src/utils/auth');
@@ -115,6 +114,29 @@ describe('Profile Route', () => {
 					auth_id: 1,
 					user_id: 1,
 					login_attempt_time: '2021-09-01 12:00:00',
+				},
+			],
+		});
+
+		// mock daily todos
+		mockPreparedStatement.all.mockResolvedValueOnce({
+			results: [
+				{
+					daily_todo_id: 1,
+					user_id: 1,
+					task: 'do something',
+					completed: false,
+				},
+			],
+		});
+
+		// mock daily todo completions
+		mockPreparedStatement.all.mockResolvedValueOnce({
+			results: [
+				{
+					daily_todo_completion_id: 1,
+					user_id: 1,
+					completed_at: '2021-09-01 12:00:00',
 				},
 			],
 		});
