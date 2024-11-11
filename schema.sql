@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS PlanItems (
 CREATE TABLE IF NOT EXISTS DailyTodos (
     daily_todo_id INTEGER PRIMARY KEY,
     user_id INTEGER,
-    todo TEXT,
+    task TEXT,
+    completed INTEGER DEFAULT 0 CHECK (completed IN (0, 1)),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY(user_id) REFERENCES Users(user_id)
 );

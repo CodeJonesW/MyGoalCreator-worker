@@ -10,4 +10,5 @@ export { trackedGoalByIdRoute } from './goal/trackedGoalByIdRoute';
 export { updatePlanItemRoute } from './goal/updatePlanItemRoute';
 export { streamSubGoalRoute } from './goal/subGoalRoute';
 export { createDailyTodoRoute } from './todo/createDailyTodoRoute';
-export { completeDailyTodoRoute } from './todo/completeDailyTodoRoute';
+export { completeDayRoute } from './todo/completeDayRoute';
+export { resetDailyGoalsChron } from './todo/resetDailyGoalsChron';

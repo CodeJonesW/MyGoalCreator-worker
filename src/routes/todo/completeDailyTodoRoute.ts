@@ -11,24 +11,21 @@ export const completeDailyTodoRoute = async (context: Context): Promise<Response
 
 		const user = authResponse.user;
 
-		const today = new Date().toISOString().split('T')[0];
-		const result = await env.DB.prepare(
-			`
-            SELECT * 
-            FROM DailyTodoCompletions 
-            WHERE user_id = ? 
-              AND DATE(completed_at) = DATE(?)
-        `
-		)
-			.bind(user.user_id, today)
-			.first();
-		if (result) {
-			return errorResponse('Todo already completed today', 403);
+		const { daily_todo_id, completed }: any = await request.json();
+
+		if (!daily_todo_id) {
+			return errorResponse('Todo ID is required', 400);
 		}
 
-		await env.DB.prepare(`INSERT INTO DailyTodoCompletions (user_id) VALUES (?)`).bind(user.user_id).run();
+		if (completed === undefined) {
+			return errorResponse('Complete status is required', 400);
+		}
 
-		return new Response(JSON.stringify({ message: 'success' }), {
+		const { results } = await env.DB.prepare(`UPDATE DailyTodos SET completed = ? WHERE user_id = ? AND daily_todo_id = ? RETURNING *`)
+			.bind(completed, user.user_id, daily_todo_id)
+			.run();
+
+		return new Response(JSON.stringify({ message: 'success', result: results[0] }), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json' },
 		});

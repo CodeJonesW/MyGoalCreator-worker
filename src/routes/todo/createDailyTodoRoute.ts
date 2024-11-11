@@ -17,9 +17,12 @@ export const createDailyTodoRoute = async (context: Context): Promise<Response> 
 			return errorResponse('Todo is required', 400);
 		}
 
-		await env.DB.prepare(`INSERT INTO DailyTodos (user_id, todo) VALUES (?, ?)`).bind(user.user_id, todo).run();
+		const { results } = await env.DB.prepare(`INSERT INTO DailyTodos (user_id, task) VALUES (?, ?) RETURNING *`)
+			.bind(user.user_id, todo)
+			.run();
+		console.log('result', results);
 
-		return new Response(JSON.stringify({ message: 'success' }), {
+		return new Response(JSON.stringify({ message: 'success', result: results[0] }), {
 			status: 200,
 			headers: { 'Content-Type': 'application/json' },
 		});
