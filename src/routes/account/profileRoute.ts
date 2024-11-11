@@ -1,6 +1,11 @@
 import { Context } from 'hono';
-import { Env } from '../../types';
-import { findUserTrackedGoals, findUserRecentGoal, findUserClientData, findGoalsAndSubGoalsByUserId } from '../../utils/db/db_queries';
+import {
+	findUserTrackedGoals,
+	findUserRecentGoal,
+	findUserClientData,
+	findGoalsAndSubGoalsByUserId,
+	getUserDailyTodos,
+} from '../../utils/db/db_queries';
 import { errorResponse } from '../../utils/response_utils';
 
 export const profileRoute = async (context: Context): Promise<Response> => {
@@ -35,12 +40,25 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		});
 	}
 
+	const dailyTodos = await getUserDailyTodos(user.user_id, env);
+	const dailyTodosCompletions = await env.DB.prepare(
+		`
+	  SELECT *
+	  FROM DailyTodoCompletions
+	  WHERE user_id = ?
+	`
+	)
+		.bind(user.user_id)
+		.all();
+
 	const responseData = {
 		user: userFromDb,
 		goals: userGoals,
 		recentGoal: recentGoal ? recentGoal : null,
 		trackedGoals: trackedGoals.results,
 		showUiHelp: showUiHelp,
+		dailyTodos: dailyTodos.results,
+		dailyTodosCompletions: dailyTodosCompletions.results,
 	};
 
 	return new Response(JSON.stringify(responseData), {

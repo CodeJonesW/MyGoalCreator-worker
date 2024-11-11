@@ -1,5 +1,9 @@
 import { Env, Goal, User } from '../../types';
 
+export const getUserDailyTodos = async (user_id: number, env: Env) => {
+	return await env.DB.prepare(`SELECT * FROM DailyTodos WHERE user_id = ?`).bind(user_id).all();
+};
+
 export const checkIfUserExistsByEmail = async (email: string, env: Env): Promise<null | User> => {
 	return await env.DB.prepare(`SELECT * FROM Users WHERE email = ?`).bind(email).first();
 };
