@@ -1,6 +1,6 @@
 import { Context } from 'hono';
 
-export const resetDailyGoalsChron = async (context: Context): Promise<void> => {
+export const resetDailyTodosChron = async (context: Context): Promise<void> => {
 	try {
 		const { env } = context;
 		const currentDate = new Date();
@@ -12,7 +12,7 @@ export const resetDailyGoalsChron = async (context: Context): Promise<void> => {
 		  INSERT INTO DailyTodoCompletions (user_id, completed_at)
 		  SELECT user_id, CURRENT_TIMESTAMP
 		  FROM DailyTodos
-		  WHERE completed = true
+		  WHERE completed = 1
 		  GROUP BY user_id
 		  HAVING COUNT(*) = (
 			SELECT COUNT(*) FROM DailyTodos WHERE user_id = DailyTodos.user_id
@@ -21,7 +21,7 @@ export const resetDailyGoalsChron = async (context: Context): Promise<void> => {
 		).run();
 
 		// Reset all todos for the new day
-		await env.DB.prepare(`UPDATE DailyTodos SET completed = false WHERE completed = true`).run();
+		await env.DB.prepare(`UPDATE DailyTodos SET completed = 0 WHERE completed = 1`).run();
 
 		console.log(`Daily goals reset successfully and completions marked`);
 	} catch (error) {

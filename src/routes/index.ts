@@ -11,4 +11,4 @@ export { updatePlanItemRoute } from './goal/updatePlanItemRoute';
 export { streamSubGoalRoute } from './goal/subGoalRoute';
 export { createDailyTodoRoute } from './todo/createDailyTodoRoute';
 export { completeDailyTodoRoute } from './todo/completeDailyTodoRoute';
-export { resetDailyGoalsChron } from './todo/resetDailyGoalsChron';
+export { resetDailyTodosChron } from './todo/resetDailyTodosChron';
