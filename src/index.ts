@@ -13,11 +13,10 @@ import {
 	updatePlanItemRoute,
 	streamSubGoalRoute,
 	createDailyTodoRoute,
-	completeDayRoute,
 	resetDailyGoalsChron,
+	completeDailyTodoRoute,
 } from './routes';
 import { Hono } from 'hono';
-import { completeDailyTodoRoute } from './routes/todo/completeDailyTodoRoute';
 
 const app = new Hono<{ Bindings: Env }>();
 
@@ -42,7 +41,6 @@ app.put('/api/planItem', updatePlanItemRoute);
 
 app.post('/api/dailyTodo', createDailyTodoRoute);
 app.post('/api/completeDailyTodo', completeDailyTodoRoute);
-app.post('/api/completeDay', completeDayRoute);
 
 app.use('scheduled', resetDailyGoalsChron);
 
