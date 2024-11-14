@@ -12,3 +12,4 @@ export { streamSubGoalRoute } from './goal/subGoalRoute';
 export { createDailyTodoRoute } from './todo/createDailyTodoRoute';
 export { completeDailyTodoRoute } from './todo/completeDailyTodoRoute';
 export { resetDailyTodosChron } from './todo/resetDailyTodosChron';
+export { completeDayRoute } from './todo/completeDayRoute';
