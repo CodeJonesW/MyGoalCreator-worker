@@ -15,6 +15,7 @@ import {
 	createDailyTodoRoute,
 	resetDailyTodosChron,
 	completeDailyTodoRoute,
+	completeDayRoute,
 } from './routes';
 import { Hono } from 'hono';
 
@@ -43,5 +44,6 @@ app.post('/api/dailyTodo', createDailyTodoRoute);
 app.post('/api/completeDailyTodo', completeDailyTodoRoute);
 
 app.use('scheduled', resetDailyTodosChron);
+app.post('/api/completeDay', completeDayRoute);
 
 export default app;
