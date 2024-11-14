@@ -18,13 +18,17 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 	const user = authResponse.user;
 
 	const userFromDb = await findUserClientData(env, user.user_id);
+	console.log('userFromDb', userFromDb);
 	if (!userFromDb) {
 		return errorResponse('User not found', 404);
 	}
 
 	const userGoals = await findGoalsAndSubGoalsByUserId(env, user.user_id, null);
+	console.log('userGoals', userGoals);
 	const recentGoal = await findUserRecentGoal(env, user.user_id);
+	console.log('recentGoal', recentGoal);
 	const trackedGoals = await findUserTrackedGoals(env, user.user_id);
+	console.log('trackedGoals', trackedGoals);
 	const showUiHelp = userGoals.length > 0 && !userGoals.some((goal) => goal.subgoals.length > 0);
 
 	if (recentGoal) {
@@ -41,6 +45,8 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 	}
 
 	const dailyTodos = await getUserDailyTodos(user.user_id, env);
+	console.log('dailyTodos', dailyTodos);
+
 	const dailyTodosCompletions = await env.DB.prepare(
 		`
 	  SELECT *
@@ -51,6 +57,20 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		.bind(user.user_id)
 		.all();
 
+	const today = new Date().toISOString().split('T')[0];
+	const dailyTodosCompletedToday = await env.DB.prepare(
+		`
+            SELECT *
+            FROM DailyTodoCompletions
+            WHERE user_id = ?
+              AND DATE(completed_at) = DATE(?)
+        `
+	)
+		.bind(user.user_id, today)
+		.first();
+
+	console.log('dailyTodosCompletedToday', dailyTodosCompletedToday);
+
 	const responseData = {
 		user: userFromDb,
 		goals: userGoals,
@@ -59,6 +79,7 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		showUiHelp: showUiHelp,
 		dailyTodos: dailyTodos.results,
 		dailyTodosCompletions: dailyTodosCompletions.results,
+		dailyTodosCompletedToday: dailyTodosCompletedToday ? true : false,
 	};
 
 	return new Response(JSON.stringify(responseData), {

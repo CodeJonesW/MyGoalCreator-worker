@@ -82,7 +82,7 @@ describe('Profile Route', () => {
 
 		// mock user goals
 		mockPreparedStatement.all.mockResolvedValueOnce({
-			results: [{ goal_name: 'Learn React', goal_id: 1 }],
+			results: [{ goal_name: 'Learn React', goal_id: 1, plan: 'go to the docs', aof: 'details', timeline: '1 week' }],
 		});
 		// mock goal subgoals
 		mockPreparedStatement.all.mockResolvedValueOnce({
@@ -107,17 +107,6 @@ describe('Profile Route', () => {
 			],
 		});
 
-		// mock auths
-		mockPreparedStatement.all.mockResolvedValueOnce({
-			results: [
-				{
-					auth_id: 1,
-					user_id: 1,
-					login_attempt_time: '2021-09-01 12:00:00',
-				},
-			],
-		});
-
 		// mock daily todos
 		mockPreparedStatement.all.mockResolvedValueOnce({
 			results: [
@@ -136,7 +125,18 @@ describe('Profile Route', () => {
 				{
 					daily_todo_completion_id: 1,
 					user_id: 1,
-					completed_at: '2021-09-01 12:00:00',
+					completed_at: '2024-09-01 12:00:00',
+				},
+			],
+		});
+
+		// mock daily todo completions for today
+		mockPreparedStatement.first.mockResolvedValueOnce({
+			results: [
+				{
+					daily_todo_completion_id: 1,
+					user_id: 1,
+					completed_at: new Date().toISOString(),
 				},
 			],
 		});
@@ -154,5 +154,12 @@ describe('Profile Route', () => {
 		expect(result.trackedGoals[0].goal_id).toBe(1);
 		// @ts-ignore
 		expect(result.trackedGoals[0].user_id).toBe(1);
+
+		// @ts-ignore
+		expect(result.dailyTodos[0].task).toBe('do something');
+		// @ts-ignore
+		expect(result.dailyTodosCompletions[0].daily_todo_completion_id).toBe(1);
+		// @ts-ignore
+		expect(result.dailyTodosCompletedToday).toBe(true);
 	});
 });
