@@ -14,8 +14,9 @@ import {
 	streamSubGoalRoute,
 	createDailyTodoRoute,
 	resetDailyTodosChron,
-	completeDailyTodoRoute,
 	completeDayRoute,
+	updateDailyTodoRoute,
+	deleteDailyTodoRoute,
 } from './routes';
 import { Hono } from 'hono';
 
@@ -41,7 +42,8 @@ app.get('/api/trackGoal', trackedGoalByIdRoute);
 app.put('/api/planItem', updatePlanItemRoute);
 
 app.post('/api/dailyTodo', createDailyTodoRoute);
-app.post('/api/completeDailyTodo', completeDailyTodoRoute);
+app.put('/api/dailyTodo', updateDailyTodoRoute);
+app.delete('/api/dailyTodo', deleteDailyTodoRoute);
 
 app.use('scheduled', resetDailyTodosChron);
 app.post('/api/completeDay', completeDayRoute);

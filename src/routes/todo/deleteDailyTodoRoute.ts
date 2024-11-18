@@ -1,7 +1,7 @@
 import { Context } from 'hono';
 import { errorResponse } from '../../utils/response_utils';
 
-export const completeDailyTodoRoute = async (context: Context): Promise<Response> => {
+export const deleteDailyTodoRoute = async (context: Context): Promise<Response> => {
 	const { verifyToken } = await import('../../utils/auth');
 	try {
 		const { req: request, env } = context;
@@ -17,12 +17,8 @@ export const completeDailyTodoRoute = async (context: Context): Promise<Response
 			return errorResponse('Todo ID is required', 400);
 		}
 
-		if (completed === undefined) {
-			return errorResponse('Complete status is required', 400);
-		}
-
-		const { results } = await env.DB.prepare(`UPDATE DailyTodos SET completed = ? WHERE user_id = ? AND daily_todo_id = ? RETURNING *`)
-			.bind(completed, user.user_id, daily_todo_id)
+		const { results } = await env.DB.prepare(`DELETE FROM DailyTodos WHERE user_id = ? AND daily_todo_id = ?`)
+			.bind(user.user_id, daily_todo_id)
 			.run();
 
 		return new Response(JSON.stringify({ message: 'success', result: results[0] }), {
