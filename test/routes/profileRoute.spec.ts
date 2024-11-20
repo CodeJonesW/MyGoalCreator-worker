@@ -2,6 +2,11 @@ import { describe, it, expect, vi, afterEach, Mock } from 'vitest';
 import { profileRoute } from '../../src/routes/account/profileRoute';
 import { Env, ErrorResponse } from '../../src/types';
 import { createMockContext, HonoEnv } from '../testUtils.ts/testTypes';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 vi.mock('../../src/utils/auth', () => ({
 	verifyToken: vi.fn(),
@@ -68,7 +73,18 @@ describe('Profile Route', () => {
 	});
 
 	it('should return 200 and user data to include tracked goal', async () => {
-		const request = new Request('http://localhost/api/profile', { method: 'GET' });
+		const userTimezone = dayjs.tz.guess();
+		console.log('user timezone', userTimezone);
+		const now = dayjs().tz(userTimezone).format('YYYY-MM-DD HH:mm:ss');
+
+		const request = new Request('http://localhost/api/profile', {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				userTimezone: userTimezone,
+				datetime: now,
+			},
+		});
 		const { verifyToken } = await import('../../src/utils/auth');
 		(verifyToken as Mock).mockResolvedValue({
 			user: { user_id: 1, email: 'test@example.com' },
@@ -125,18 +141,7 @@ describe('Profile Route', () => {
 				{
 					daily_todo_completion_id: 1,
 					user_id: 1,
-					completed_at: '2024-09-01 12:00:00',
-				},
-			],
-		});
-
-		// mock daily todo completions for today
-		mockPreparedStatement.first.mockResolvedValueOnce({
-			results: [
-				{
-					daily_todo_completion_id: 1,
-					user_id: 1,
-					completed_at: new Date().toISOString(),
+					completed_at: now,
 				},
 			],
 		});
