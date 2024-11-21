@@ -66,6 +66,13 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		return completionDate === user_datetime;
 	});
 
+	const dailyTodoCompletionsInUserTimezone = dailyTodosCompletions.results.map((completion: any) => {
+		return {
+			...completion,
+			completed_at: dayjs(completion.completed_at).tz(req_timezone).format('YYYY-MM-DD HH:mm:ss'),
+		};
+	});
+
 	const responseData = {
 		user: userFromDb,
 		goals: userGoals,
@@ -73,7 +80,7 @@ export const profileRoute = async (context: Context): Promise<Response> => {
 		trackedGoals: trackedGoals.results,
 		showUiHelp: showUiHelp,
 		dailyTodos: dailyTodos.results,
-		dailyTodosCompletions: dailyTodosCompletions.results,
+		dailyTodosCompletions: dailyTodoCompletionsInUserTimezone,
 		dailyTodosCompletedToday: completedToday ? true : false,
 	};
 
